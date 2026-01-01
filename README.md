@@ -1,7 +1,3 @@
-L'image freebox-os-ultra-dashboard.png apparaît bien dans la liste des fichiers de ton dépôt GitHub. Pour qu'elle s'affiche directement dans ton README.md et que les gens voient ton travail, tu peux ajouter cette ligne de code tout en haut de ton fichier :
-
-Markdown
-
 ![Aperçu de l'éditeur](freebox-os-ultra-dashboard.png)
 Voici le contenu complet du README.md mis à jour avec l'image et les explications détaillées :
 
