@@ -1,6 +1,14 @@
 🚀 Expert-Editor-Universal-TinyMCE
 Une barre d'outils étendue et intelligente pour tous les éditeurs de texte TinyMCE sur le web. Ce script améliore radicalement votre productivité en ajoutant des fonctions de mise en page et d'insertion de médias.
 ![Aperçu de l'éditeur](freebox-os-ultra-dashboard.png)
+⚠️ Avertissement important (Disclaimer)
+À utiliser avec précaution. L'utilisation de ce script modifie l'interface et les fonctionnalités natives de sites tiers. Selon la politique de modération ou les conditions générales d'utilisation (CGU) de chaque site (ex: Univers Freebox, forums, blogs), l'usage d'outils tiers pour la publication peut être proscrit.
+
+L'utilisation de cet outil peut, sur certains sites, entraîner des sanctions allant d'un avertissement à un bannissement temporaire ou définitif de votre compte.
+
+Veuillez vérifier la politique éditoriale du site sur lequel vous publiez avant toute utilisation intensive.
+
+L'auteur de ce script ne pourra être tenu responsable des conséquences liées à son utilisation.
 
 🌟 À quoi ça sert ?
 Ce script "UserScript" s'injecte dynamiquement dans les zones de rédaction pour transformer un éditeur basique en une suite de rédaction experte. Il permet de formater du texte, d'insérer des tableaux et d'intégrer des médias de manière fluide.
