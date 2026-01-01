@@ -43,5 +43,5 @@ Bouton SC (SoundCloud Mini) : Insère un lecteur SoundCloud ultra-discret de seu
 Le script a été conçu pour être universel. Il utilise la détection active de l'instance window.tinyMCE.activeEditor. Cela signifie qu'il fonctionnera sur la majorité des sites utilisant TinyMCE (WordPress, Joomla, etc.).
 
 ## 👨‍💻 Auteur
-* Steven17200 - Profil GitHub# Expert-Editor-Universal-TinyMCE.
+* **Auteur** : [Steven17200](https://github.com/Steven17200)
 * **Intelligence Artificielle** : Les scripts de ce dashboard ont été développés ainsi que ce tuto à 100% par **Gemini 3 Flash (Google)**.
