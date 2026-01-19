@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal TinyMCE - ULTIMATE V4.9.3
+// @name         Expert Editor Universal TinyMCE - ULTIMATE V4.9.4
 // @namespace    https://github.com/Steven17200
-// @version      4.9.3
-// @description  Version Totale : Correcteur IA sur Sélection + YT Music + Tailles + Styles + Couleurs + Shorts + Tableau + Listes
+// @version      4.9.4
+// @description  Version Totale : IA Correction + Traduction Texas (sur sélection) + YT Music + Tailles + Styles + Couleurs + Shorts + Tableau
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -15,18 +15,17 @@
 
     const MISTRAL_API_KEY = 'YOUR KEY';
 
-    // --- LOGIQUE API MISTRAL (CORRECTION SUR SÉLECTION UNIQUEMENT) ---
-    function corrigerSelectionIA(ed, btn) {
-        // On récupère uniquement le texte sélectionné par la souris
+    // --- LOGIQUE API MISTRAL (CORRECTION & TRADUCTION) ---
+    function appelMistralSelection(ed, btn, systemPrompt, finalLabel) {
         const selectedText = ed.selection.getContent({ format: 'text' });
 
         if (!selectedText || selectedText.trim().length < 2) {
-            alert("Veuillez d'abord surligner (sélectionner) le texte à corriger avec votre souris.");
+            alert("Veuillez d'abord surligner le texte avec votre souris.");
             return;
         }
 
         const originalLabel = btn.innerHTML;
-        btn.innerHTML = '⏳...';
+        btn.innerHTML = '⏳';
         btn.style.color = "#ffb300";
 
         GM_xmlhttpRequest({
@@ -39,29 +38,26 @@
             data: JSON.stringify({
                 model: "open-mistral-7b",
                 messages: [
-                    { role: "system", content: "Tu es un correcteur expert. Corrige l'orthographe et la grammaire du texte suivant. Réponds UNIQUEMENT avec le texte corrigé, sans commentaires." },
+                    { role: "system", content: systemPrompt },
                     { role: "user", content: selectedText }
                 ],
-                temperature: 0
+                temperature: 0.2
             }),
             onload: function(response) {
                 try {
                     let data = JSON.parse(response.responseText);
                     let result = data.choices[0].message.content.trim().replace(/^["']|["']$/g, "");
-
-                    // On remplace uniquement la sélection par le texte corrigé
                     ed.focus();
                     ed.execCommand('mceInsertContent', false, result);
-
-                    btn.innerHTML = '✅ OK';
+                    btn.innerHTML = '✅';
                     btn.style.color = "#27ae60";
                 } catch(e) {
-                    btn.innerHTML = '❌ Erreur';
+                    btn.innerHTML = '❌';
                     btn.style.color = "#e74c3c";
                 }
                 setTimeout(() => {
-                    btn.innerHTML = originalLabel;
-                    btn.style.color = "#000";
+                    btn.innerHTML = finalLabel;
+                    btn.style.color = (finalLabel === 'US') ? '#ffb300' : '#000';
                 }, 2000);
             }
         });
@@ -98,9 +94,19 @@
                 return btn;
             };
 
-            // --- 1. BOUTON IA FIX (SUR SÉLECTION) ---
-            const aiBtn = create('btn-ai-fix', '✨ IA Fix', () => { ed.focus(); corrigerSelectionIA(ed, aiBtn); });
+            // --- 1. BOUTONS IA (CORRECTION & TRADUCTION) ---
+            const aiBtn = create('btn-ai-corr', '✨ IA', () => {
+                ed.focus();
+                appelMistralSelection(ed, aiBtn, "Corrige l'orthographe et la grammaire française. Réponds UNIQUEMENT avec le texte corrigé.", '✨ IA');
+            });
             toolbar.appendChild(aiBtn);
+
+            const texasBtn = create('btn-ai-texas', 'US', () => {
+                ed.focus();
+                appelMistralSelection(ed, texasBtn, "Traduire en anglais du Texas (USA). Répondre UNIQUEMENT avec le texte traduit.", 'US');
+            });
+            texasBtn.style.color = "#ffb300"; // Couleur or pour le bouton Texas
+            toolbar.appendChild(texasBtn);
 
             // --- 2. TAILLE DE POLICE ---
             const sizeSelect = document.createElement('select');
@@ -113,14 +119,14 @@
             sizeSelect.onchange = () => { ed.focus(); ed.execCommand('FontSize', false, sizeSelect.value); };
             toolbar.appendChild(sizeSelect);
 
-            // --- 3. LISTES ET INDENTATION ---
+            // --- 3. LISTES ET MODÈLES ---
             toolbar.appendChild(create('btn-list-num', '1.', () => { ed.focus(); ed.execCommand('InsertOrderedList'); }));
             toolbar.appendChild(create('btn-list-bull', '•', () => { ed.focus(); ed.execCommand('InsertUnorderedList'); }));
             toolbar.appendChild(create('btn-indent', '➡ Ident', () => { ed.focus(); ed.execCommand('Indent'); }));
-
-            // --- 4. MODÈLES ET TABLEAU ---
             toolbar.appendChild(create('btn-tpl-1', 'Info', () => { ed.focus(); ed.execCommand('mceInsertContent', false, TEMPLATES[1]); }));
             toolbar.appendChild(create('btn-tpl-2', 'Alerte', () => { ed.focus(); ed.execCommand('mceInsertContent', false, TEMPLATES[2]); }));
+
+            // --- 4. TABLEAU ---
             toolbar.appendChild(create('btn-grid', '📅 Table', () => {
                 const r = prompt("Lignes :", "3"), c = prompt("Colonnes :", "3");
                 if (r && c) {
@@ -128,8 +134,7 @@
                     for (let i = 0; i < r; i++) {
                         h += '<tr>';
                         for (let j = 0; j < c; j++) {
-                            const isH = i === 0;
-                            h += `<td style="padding: 8px; border: 1px solid #ccc; ${isH ? 'background: #f2f2f2; font-weight: bold;' : ''}">Cellule</td>`;
+                            h += `<td style="padding: 8px; border: 1px solid #ccc; ${i === 0 ? 'background: #f2f2f2; font-weight: bold;' : ''}">Cellule</td>`;
                         }
                         h += '</tr>';
                     }
@@ -141,9 +146,9 @@
             toolbar.appendChild(create('btn-font-tr', 'TR', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff4500; font-family:Impact; text-transform:uppercase; font-style:italic;">${s || 'TR'}</span>`); }));
             toolbar.appendChild(create('btn-font-t8', 'T8', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff0000; font-family:monospace; font-weight:bold; text-shadow:0 0 5px red;">${s || 'T8'}</span>`); }));
             toolbar.appendChild(create('btn-font-humain', 'Humain', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-family:'Comic Sans MS', cursive, sans-serif;">${s || 'Texte'}</span>`); }));
-            toolbar.appendChild(create('btn-font-small', 'Petit', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-size: 8pt;">${sel || 'Petit'}</span>`); }));
+            toolbar.appendChild(create('btn-font-small', 'Petit', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-size: 8pt;">${s || 'Petit'}</span>`); }));
 
-            // --- 6. COULEURS (LES 9 COULEURS D'ORIGINE) ---
+            // --- 6. COULEURS ---
             const cols = [{n:'N',c:'#000'},{n:'R',c:'#e74c3c'},{n:'B',c:'#3498db'},{n:'V',c:'#27ae60'},{n:'O',c:'#ff9800'},{n:'VI',c:'#8e44ad'},{n:'VF',c:'#1b5e20'},{n:'BF',c:'#0d47a1'},{n:'BL',c:'#fff'}];
             cols.forEach(col => {
                 const b = create('btn-col-'+col.n, col.n, () => { ed.focus(); ed.execCommand('ForeColor', false, col.c); });
@@ -151,7 +156,7 @@
                 toolbar.appendChild(b);
             });
 
-            // --- 7. MÉDIAS (YT MUSIC, SC, SHORTS) ---
+            // --- 7. MÉDIAS ---
             toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
                 const url = prompt("Lien YT Music :");
                 const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
