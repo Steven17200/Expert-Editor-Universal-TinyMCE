@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal TinyMCE - ULTIMATE V4.9.0
+// @name         Expert Editor Universal TinyMCE - ULTIMATE V4.9.3
 // @namespace    https://github.com/Steven17200
-// @version      4.9.0
-// @description  Version Totale : Correcteur IA Mistral + YT Music + Tailles + Styles + Couleurs + Shorts + Tableau + Listes & Sous-catégories
+// @version      4.9.3
+// @description  Version Totale : Correcteur IA sur Sélection + YT Music + Tailles + Styles + Couleurs + Shorts + Tableau + Listes
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -15,12 +15,18 @@
 
     const MISTRAL_API_KEY = 'YOUR KEY';
 
-    // --- LOGIQUE API MISTRAL ---
-    function appelMistralTiny(ed, btn, systemPrompt, finalLabel) {
-        let text = ed.getContent({ format: 'text' });
-        if (!text || text.trim().length < 2) return;
+    // --- LOGIQUE API MISTRAL (CORRECTION SUR SÉLECTION UNIQUEMENT) ---
+    function corrigerSelectionIA(ed, btn) {
+        // On récupère uniquement le texte sélectionné par la souris
+        const selectedText = ed.selection.getContent({ format: 'text' });
 
-        btn.innerText = '⏳';
+        if (!selectedText || selectedText.trim().length < 2) {
+            alert("Veuillez d'abord surligner (sélectionner) le texte à corriger avec votre souris.");
+            return;
+        }
+
+        const originalLabel = btn.innerHTML;
+        btn.innerHTML = '⏳...';
         btn.style.color = "#ffb300";
 
         GM_xmlhttpRequest({
@@ -33,26 +39,30 @@
             data: JSON.stringify({
                 model: "open-mistral-7b",
                 messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: text }
+                    { role: "system", content: "Tu es un correcteur expert. Corrige l'orthographe et la grammaire du texte suivant. Réponds UNIQUEMENT avec le texte corrigé, sans commentaires." },
+                    { role: "user", content: selectedText }
                 ],
                 temperature: 0
             }),
             onload: function(response) {
                 try {
                     let data = JSON.parse(response.responseText);
-                    let rawRes = data.choices[0].message.content;
-                    let cleanText = rawRes.replace(/^(Line 1|Ligne 1|Translation|Traduction|Texte|Resultat)\s*:?\s*/i, "").replace(/^["']|["']$/g, "").trim();
+                    let result = data.choices[0].message.content.trim().replace(/^["']|["']$/g, "");
 
+                    // On remplace uniquement la sélection par le texte corrigé
                     ed.focus();
-                    ed.setContent(cleanText);
-                    btn.innerText = '✅';
+                    ed.execCommand('mceInsertContent', false, result);
+
+                    btn.innerHTML = '✅ OK';
                     btn.style.color = "#27ae60";
                 } catch(e) {
-                    btn.innerText = '❌';
+                    btn.innerHTML = '❌ Erreur';
                     btn.style.color = "#e74c3c";
                 }
-                setTimeout(() => { btn.innerText = finalLabel; btn.style.color = "#000"; }, 2000);
+                setTimeout(() => {
+                    btn.innerHTML = originalLabel;
+                    btn.style.color = "#000";
+                }, 2000);
             }
         });
     }
@@ -83,18 +93,16 @@
             const create = (id, text, onClick) => {
                 const btn = document.createElement('button');
                 btn.id = id; btn.innerHTML = text; btn.type = 'button';
-                btn.style = "padding: 4px 8px; cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; font-family: sans-serif; color: #000;";
+                btn.style = "padding: 4px 8px; cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; font-family: sans-serif; color: #000; font-weight: bold;";
                 btn.onclick = onClick;
                 return btn;
             };
 
-            // --- NOUVEAU : CORRECTEUR IA ---
-            const aiBtn = create('btn-ai-fix', '✨ IA Fix', () => {
-                appelMistralTiny(ed, aiBtn, "Corrige l'orthographe et la grammaire française. Répondre UNIQUEMENT avec le texte corrigé.", '✨ IA Fix');
-            });
+            // --- 1. BOUTON IA FIX (SUR SÉLECTION) ---
+            const aiBtn = create('btn-ai-fix', '✨ IA Fix', () => { ed.focus(); corrigerSelectionIA(ed, aiBtn); });
             toolbar.appendChild(aiBtn);
 
-            // --- 1. TAILLE DE POLICE ---
+            // --- 2. TAILLE DE POLICE ---
             const sizeSelect = document.createElement('select');
             sizeSelect.style = "padding: 3px; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size: 12px;";
             ['6pt', '8pt', '10pt', '12pt', '14pt', '18pt', '24pt', '36pt', '48pt', '72pt'].forEach(s => {
@@ -105,22 +113,22 @@
             sizeSelect.onchange = () => { ed.focus(); ed.execCommand('FontSize', false, sizeSelect.value); };
             toolbar.appendChild(sizeSelect);
 
-            // --- 2. LISTES ET SOUS-CATÉGORIES ---
+            // --- 3. LISTES ET INDENTATION ---
             toolbar.appendChild(create('btn-list-num', '1.', () => { ed.focus(); ed.execCommand('InsertOrderedList'); }));
             toolbar.appendChild(create('btn-list-bull', '•', () => { ed.focus(); ed.execCommand('InsertUnorderedList'); }));
             toolbar.appendChild(create('btn-indent', '➡ Ident', () => { ed.focus(); ed.execCommand('Indent'); }));
 
-            // --- 3. MODÈLES ET TABLEAU ---
+            // --- 4. MODÈLES ET TABLEAU ---
             toolbar.appendChild(create('btn-tpl-1', 'Info', () => { ed.focus(); ed.execCommand('mceInsertContent', false, TEMPLATES[1]); }));
             toolbar.appendChild(create('btn-tpl-2', 'Alerte', () => { ed.focus(); ed.execCommand('mceInsertContent', false, TEMPLATES[2]); }));
             toolbar.appendChild(create('btn-grid', '📅 Table', () => {
-                const rows = prompt("Lignes :", "3"), cols = prompt("Colonnes :", "3");
-                if (rows && cols) {
+                const r = prompt("Lignes :", "3"), c = prompt("Colonnes :", "3");
+                if (r && c) {
                     let h = '<table style="border-collapse: collapse; width: 100%; border: 1px solid #ccc; margin: 10px 0;">';
-                    for (let r = 0; r < rows; r++) {
+                    for (let i = 0; i < r; i++) {
                         h += '<tr>';
-                        for (let c = 0; c < cols; c++) {
-                            const isH = r === 0;
+                        for (let j = 0; j < c; j++) {
+                            const isH = i === 0;
                             h += `<td style="padding: 8px; border: 1px solid #ccc; ${isH ? 'background: #f2f2f2; font-weight: bold;' : ''}">Cellule</td>`;
                         }
                         h += '</tr>';
@@ -129,13 +137,13 @@
                 }
             }));
 
-            // --- 4. STYLES SPÉCIAUX (REMIS À NEUF) ---
-            toolbar.appendChild(create('btn-font-tr', 'TR', () => { ed.focus(); const sel = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff4500; font-family:Impact; text-transform:uppercase; font-style:italic;">${sel || 'TR'}</span>`); }));
-            toolbar.appendChild(create('btn-font-t8', 'T8', () => { ed.focus(); const sel = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff0000; font-family:monospace; font-weight:bold; text-shadow:0 0 5px red;">${sel || 'T8'}</span>`); }));
-            toolbar.appendChild(create('btn-font-humain', 'Humain', () => { ed.focus(); const sel = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-family:'Comic Sans MS', cursive, sans-serif;">${sel || 'Texte'}</span>`); }));
-            toolbar.appendChild(create('btn-font-small', 'Petit', () => { ed.focus(); const sel = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-size: 8pt;">${sel || 'Petit'}</span>`); }));
+            // --- 5. STYLES SPÉCIAUX (TR, T8, HUMAIN, PETIT) ---
+            toolbar.appendChild(create('btn-font-tr', 'TR', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff4500; font-family:Impact; text-transform:uppercase; font-style:italic;">${s || 'TR'}</span>`); }));
+            toolbar.appendChild(create('btn-font-t8', 'T8', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff0000; font-family:monospace; font-weight:bold; text-shadow:0 0 5px red;">${s || 'T8'}</span>`); }));
+            toolbar.appendChild(create('btn-font-humain', 'Humain', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-family:'Comic Sans MS', cursive, sans-serif;">${s || 'Texte'}</span>`); }));
+            toolbar.appendChild(create('btn-font-small', 'Petit', () => { ed.focus(); const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="font-size: 8pt;">${sel || 'Petit'}</span>`); }));
 
-            // --- 5. COULEURS (REMISES À NEUF) ---
+            // --- 6. COULEURS (LES 9 COULEURS D'ORIGINE) ---
             const cols = [{n:'N',c:'#000'},{n:'R',c:'#e74c3c'},{n:'B',c:'#3498db'},{n:'V',c:'#27ae60'},{n:'O',c:'#ff9800'},{n:'VI',c:'#8e44ad'},{n:'VF',c:'#1b5e20'},{n:'BF',c:'#0d47a1'},{n:'BL',c:'#fff'}];
             cols.forEach(col => {
                 const b = create('btn-col-'+col.n, col.n, () => { ed.focus(); ed.execCommand('ForeColor', false, col.c); });
@@ -143,12 +151,7 @@
                 toolbar.appendChild(b);
             });
 
-            // --- 6. MÉDIAS (YT, MUSIC, SC, SHORTS) ---
-            toolbar.appendChild(create('btn-yt-std', '📺 YT', () => {
-                const url = prompt("Lien YT :");
-                const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
-                if(id){ ed.focus(); ed.execCommand('mceInsertContent', false, `<iframe width="560" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`); }
-            }));
+            // --- 7. MÉDIAS (YT MUSIC, SC, SHORTS) ---
             toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
                 const url = prompt("Lien YT Music :");
                 const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
