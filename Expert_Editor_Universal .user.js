@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    const MISTRAL_API_KEY = 'z6hnb44CCvYe0sqazH3PrJLFC3PFGPkp';
+    const MISTRAL_API_KEY = 'KEY API';
 
     function appelMistral(ed, btn, systemPrompt, finalLabel, fullContent = false) {
         let text = fullContent ? ed.getContent({ format: 'text' }) : ed.selection.getContent({ format: 'text' });
