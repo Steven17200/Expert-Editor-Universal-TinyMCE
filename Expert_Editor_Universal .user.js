@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal TinyMCE - ULTIMATE V5.8.0
+// @name         Expert Editor Universal TinyMCE - ULTIMATE V5.8.3
 // @namespace    https://github.com/Steven17200
-// @version      5.8.0
-// @description  IMAGE POSTER ODYSEE + AUDIO SURVOL + MÉGA MENU POLICES + TOUT V5.7.9
+// @version      5.8.3
+// @description  POLICES MANUSCRITES ATTACHÉES + MACHINE USÉE + POSTER ODYSEE + TOUT V5.8.2
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -13,12 +13,13 @@
 (function() {
     'use strict';
 
+    // Importation des polices Google : SF, Machine, et le nouveau pack "Écritures Attachées"
     const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Caveat:wght@400;700&family=Pacifico&family=Dancing+Script&family=Shadows+Into+Light&family=Michroma&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Caveat:wght@400;700&family=Pacifico&family=Dancing+Script:wght@400;700&family=Shadows+Into+Light&family=Michroma&family=Special+Elite&family=Homemade+Apple&family=Yellowtail&family=Satisfy&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
-    const MISTRAL_API_KEY = 'KEY API';
+    const MISTRAL_API_KEY = 'key api';
 
     function appelMistral(ed, btn, systemPrompt, finalLabel, fullContent = false) {
         let text = fullContent ? ed.getContent({ format: 'text' }) : ed.selection.getContent({ format: 'text' });
@@ -70,16 +71,13 @@
             btn.onclick = onClick; return btn;
         };
 
-        // --- IA & ANALYSE (PROMPT TECHNICIEN RÉSEAU) ---
+        // --- IA & ANALYSE ---
         toolbar.appendChild(create('btn-ai-corr', '✨ IA', () => { appelMistral(ed, document.getElementById('btn-ai-corr'), "Corrige l'orthographe.", '✨ IA'); }));
         const usBtn = create('btn-ai-us', 'US', () => { appelMistral(ed, usBtn, "Translate to Texan English.", 'US'); });
         usBtn.style.color = "#ffb300"; toolbar.appendChild(usBtn);
-
         toolbar.appendChild(create('btn-presentation', '📢 Présentation', () => {
-            ed.focus();
-            ed.execCommand('mceInsertContent', false, " (expérimentation) Bonjour, je suis Mistral, l'IA");
+            ed.focus(); ed.execCommand('mceInsertContent', false, " (expérimentation) Bonjour, je suis Mistral, l'IA");
         }));
-
         toolbar.appendChild(create('btn-ai-analyze', '🧐 Analyse', () => {
             const promptMistral = `Tu es un technicien réseau aguerri, spécialiste dans les telecom  : Remercie @Auteur 'a écrit' pour son message et en citant son texte après 'a écrit' : Analyse son propos (points forts/faibles, précisions techniques).et Donne juste ton avis d’expert (exemples concrets, comparaisons, données historiques si pertinent). et Termine par une question ouverte ou une suggestion. **Style** : direct, technique mais accessible, sans formules creuses. **Format** : 3-5 phrases max par point.`;
             appelMistral(ed, document.getElementById('btn-ai-analyze'), promptMistral, '🧐 Analyse', true);
@@ -93,25 +91,23 @@
         sizeSelect.onchange = () => { ed.focus(); ed.execCommand('FontSize', false, sizeSelect.value); };
         toolbar.appendChild(sizeSelect);
 
-        // --- MÉGA MENU POLICES (STAR WARS, HUMAIN, CINÉ) ---
+        // --- MENU POLICES (FOCUS ATTACHÉES) ---
         const fontSelect = document.createElement('select');
         fontSelect.style = "padding: 3px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; max-width: 150px;";
         const fonts = [
             {n:'Choix Police...', v:''},
-            {n:'-- STAR WARS / SF --', v:'Orbitron, sans-serif'},
-            {n:'Orbitron (SF/Star)', v:'Orbitron, sans-serif'},
-            {n:'Michroma (Tech)', v:'Michroma, sans-serif'},
-            {n:'-- HUMAINES --', v:'"Comic Sans MS"'},
-            {n:'Comic Sans MS', v:'"Comic Sans MS"'},
-            {n:'Caveat (Écrit)', v:'Caveat, cursive'},
-            {n:'Pacifico (Plume)', v:'Pacifico, cursive'},
-            {n:'Dancing Script', v:'"Dancing Script", cursive'},
-            {n:'Shadow Light', v:'"Shadows Into Light", cursive'},
-            {n:'-- CINÉMA / PRO --', v:'Impact'},
+            {n:'-- ÉCRITURE ATTACHÉE --', v:'Yellowtail'},
+            {n:'Yellowtail (Fluide)', v:'Yellowtail, cursive'},
+            {n:'Satisfy (Plume)', v:'Satisfy, cursive'},
+            {n:'Dancing Script (Cursive)', v:'"Dancing Script", cursive'},
+            {n:'-- MANUSCRITE / STYLO --', v:'Caveat'},
+            {n:'Caveat (Feutre)', v:'Caveat, cursive'},
+            {n:'Shadow Light (Note)', v:'"Shadows Into Light", cursive'},
+            {n:'Homemade Apple (Listes)', v:'"Homemade Apple", cursive'},
+            {n:'-- CINÉMA / SF / USÉE --', v:'Orbitron'},
+            {n:'Orbitron (Star Wars)', v:'Orbitron, sans-serif'},
+            {n:'Machine Usée 🖨️', v:'"Special Elite", serif'},
             {n:'Impact (TITRE)', v:'Impact'},
-            {n:'Arial Black', v:'"Arial Black", sans-serif'},
-            {n:'Georgia (Journal)', v:'Georgia, serif'},
-            {n:'Courier (Rapport)', v:'"Courier New", Courier, monospace'},
             {n:'-- NORMALES --', v:'Arial'},
             {n:'Arial', v:'Arial'},
             {n:'Verdana', v:'Verdana'}
@@ -128,7 +124,6 @@
         toolbar.appendChild(create('btn-list-num', '1.', () => { ed.focus(); ed.execCommand('InsertOrderedList'); }));
         toolbar.appendChild(create('btn-list-bull', '•', () => { ed.focus(); ed.execCommand('InsertUnorderedList'); }));
         toolbar.appendChild(create('btn-ident', '➡ Ident', () => { ed.focus(); ed.execCommand('Indent'); }));
-
         toolbar.appendChild(create('btn-grid', '📅 Table', () => {
             const r = prompt("Lignes :", "3"), c = prompt("Colonnes :", "3");
             if (r && c) {
@@ -137,15 +132,12 @@
                 ed.focus(); ed.execCommand('mceInsertContent', false, h + '</table><p></p>');
             }
         }));
-
         toolbar.appendChild(create('btn-alert', '📢 Alerte', () => {
             const s = ed.selection.getContent();
             ed.execCommand('mceInsertContent', false, `<div style="background:#fee2e2; border:2px solid #ef4444; padding:15px; border-radius:8px; color:#991b1b; font-weight:bold; margin:10px 0;">⚠️ ALERTE : ${s || '...'}</div><p></p>`);
         }));
         toolbar.appendChild(create('btn-font-tr', 'TR', () => { const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff4500; font-family:Impact; text-transform:uppercase; font-style:italic;">${s || 'TR'}</span>`); }));
         toolbar.appendChild(create('btn-font-t8', 'T8', () => { const s = ed.selection.getContent(); ed.execCommand('mceInsertContent', false, `<span style="color:#ff0000; font-family:monospace; font-weight:bold; text-shadow:0 0 5px red;">${s || 'T8'}</span>`); }));
-
-        toolbar.appendChild(create('btn-font-humain', 'Humain', () => { const s = ed.selection.getContent(); ed.focus(); ed.execCommand('mceInsertContent', false, `<span style="font-family:'Comic Sans MS', cursive;">${s || 'Texte'}</span>`); }));
         toolbar.appendChild(create('btn-font-small', 'Petit', () => { const s = ed.selection.getContent(); ed.focus(); ed.execCommand('mceInsertContent', false, `<span style="font-size: 8pt;">${s || 'Petit'}</span>`); }));
 
         // --- COULEURS T/S ---
@@ -174,17 +166,14 @@
             const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
             if(id){ ed.focus(); ed.execCommand('mceInsertContent', false, `<div style="margin:10px 0;"><iframe width="100%" height="60" src="https://www.youtube.com/embed/${id}" frameborder="0" style="border-radius:8px; background:#000;"></iframe></div><p></p>`); }
         }));
-
-        // MODIFICATION ODYSEE : AJOUT IMAGE DE PRÉSENTATION (POSTER)
         toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
             const url = prompt("Lien MP4 :");
             if(url){
-                const poster = prompt("Lien de l'image de présentation (poster) :", "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp");
+                const poster = prompt("Image poster :", "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp");
                 ed.focus();
                 ed.execCommand('mceInsertContent', false, `<div style="display:flex; justify-content:center; margin:15px 0;"><video width="560" height="315" poster="${poster}" controls muted style="border-radius:12px; background:#000; object-fit: cover;" onmouseover="this.play(); this.muted=false;" onmouseout="this.pause(); this.muted=true;"><source src="${url}" type="video/mp4"></video></div><p></p>`);
             }
         }));
-
         toolbar.appendChild(create('btn-sc', '☁️ SC', () => {
             const url = prompt("Lien SoundCloud :");
             if(url){ ed.focus(); ed.execCommand('mceInsertContent', false, `<iframe width="100%" height="166" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}"></iframe><p></p>`); }
