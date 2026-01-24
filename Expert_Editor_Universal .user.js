@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal TinyMCE - ULTIMATE V5.7.7
+// @name         Expert Editor Universal TinyMCE - ULTIMATE V5.8.0
 // @namespace    https://github.com/Steven17200
-// @version      5.7.7
-// @description  AJOUT PRÉSENTATION + PETIT + TABLE + HUMAIN | GARDE TOUT VOTRE CODE V5.7.5
+// @version      5.8.0
+// @description  IMAGE POSTER ODYSEE + AUDIO SURVOL + MÉGA MENU POLICES + TOUT V5.7.9
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -12,6 +12,11 @@
 
 (function() {
     'use strict';
+
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Caveat:wght@400;700&family=Pacifico&family=Dancing+Script&family=Shadows+Into+Light&family=Michroma&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
 
     const MISTRAL_API_KEY = 'KEY API';
 
@@ -65,12 +70,11 @@
             btn.onclick = onClick; return btn;
         };
 
-        // --- IA & ANALYSE ---
+        // --- IA & ANALYSE (PROMPT TECHNICIEN RÉSEAU) ---
         toolbar.appendChild(create('btn-ai-corr', '✨ IA', () => { appelMistral(ed, document.getElementById('btn-ai-corr'), "Corrige l'orthographe.", '✨ IA'); }));
         const usBtn = create('btn-ai-us', 'US', () => { appelMistral(ed, usBtn, "Translate to Texan English.", 'US'); });
         usBtn.style.color = "#ffb300"; toolbar.appendChild(usBtn);
 
-        // AJOUT : BOUTON PRÉSENTATION
         toolbar.appendChild(create('btn-presentation', '📢 Présentation', () => {
             ed.focus();
             ed.execCommand('mceInsertContent', false, " (expérimentation) Bonjour, je suis Mistral, l'IA");
@@ -81,7 +85,7 @@
             appelMistral(ed, document.getElementById('btn-ai-analyze'), promptMistral, '🧐 Analyse', true);
         }));
 
-        // --- TAILLES & POLICES ---
+        // --- TAILLES ---
         const sizeSelect = document.createElement('select');
         ['6pt', '8pt', '10pt', '12pt', '14pt', '18pt', '24pt', '36pt', '48pt', '72pt'].forEach(s => {
             const o = document.createElement('option'); o.value = s; o.innerHTML = s; if(s === '12pt') o.selected = true; sizeSelect.appendChild(o);
@@ -89,9 +93,34 @@
         sizeSelect.onchange = () => { ed.focus(); ed.execCommand('FontSize', false, sizeSelect.value); };
         toolbar.appendChild(sizeSelect);
 
+        // --- MÉGA MENU POLICES (STAR WARS, HUMAIN, CINÉ) ---
         const fontSelect = document.createElement('select');
-        const fonts = [{n:'Police...', v:''},{n:'Arial', v:'Arial'},{n:'Verdana', v:'Verdana'},{n:'Comic Sans', v:'"Comic Sans MS"'},{n:'Caveat', v:'"Caveat"'},{n:'Impact', v:'Impact'},{n:'Courier', v:'"Courier New"'}];
-        fonts.forEach(f => { const o = document.createElement('option'); o.value = f.v; o.innerHTML = f.n; fontSelect.appendChild(o); });
+        fontSelect.style = "padding: 3px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; max-width: 150px;";
+        const fonts = [
+            {n:'Choix Police...', v:''},
+            {n:'-- STAR WARS / SF --', v:'Orbitron, sans-serif'},
+            {n:'Orbitron (SF/Star)', v:'Orbitron, sans-serif'},
+            {n:'Michroma (Tech)', v:'Michroma, sans-serif'},
+            {n:'-- HUMAINES --', v:'"Comic Sans MS"'},
+            {n:'Comic Sans MS', v:'"Comic Sans MS"'},
+            {n:'Caveat (Écrit)', v:'Caveat, cursive'},
+            {n:'Pacifico (Plume)', v:'Pacifico, cursive'},
+            {n:'Dancing Script', v:'"Dancing Script", cursive'},
+            {n:'Shadow Light', v:'"Shadows Into Light", cursive'},
+            {n:'-- CINÉMA / PRO --', v:'Impact'},
+            {n:'Impact (TITRE)', v:'Impact'},
+            {n:'Arial Black', v:'"Arial Black", sans-serif'},
+            {n:'Georgia (Journal)', v:'Georgia, serif'},
+            {n:'Courier (Rapport)', v:'"Courier New", Courier, monospace'},
+            {n:'-- NORMALES --', v:'Arial'},
+            {n:'Arial', v:'Arial'},
+            {n:'Verdana', v:'Verdana'}
+        ];
+        fonts.forEach(f => {
+            const o = document.createElement('option'); o.value = f.v; o.innerHTML = f.n;
+            if(f.n.startsWith('--')) o.disabled = true;
+            fontSelect.appendChild(o);
+        });
         fontSelect.onchange = () => { ed.focus(); ed.execCommand('FontName', false, fontSelect.value); };
         toolbar.appendChild(fontSelect);
 
@@ -145,10 +174,17 @@
             const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
             if(id){ ed.focus(); ed.execCommand('mceInsertContent', false, `<div style="margin:10px 0;"><iframe width="100%" height="60" src="https://www.youtube.com/embed/${id}" frameborder="0" style="border-radius:8px; background:#000;"></iframe></div><p></p>`); }
         }));
+
+        // MODIFICATION ODYSEE : AJOUT IMAGE DE PRÉSENTATION (POSTER)
         toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
             const url = prompt("Lien MP4 :");
-            if(url){ ed.focus(); ed.execCommand('mceInsertContent', false, `<div style="display:flex; justify-content:center; margin:15px 0;"><video width="560" height="315" controls muted style="border-radius:12px; background:#000;" onmouseover="this.play()" onmouseout="this.pause();"><source src="${url}" type="video/mp4"></video></div><p></p>`); }
+            if(url){
+                const poster = prompt("Lien de l'image de présentation (poster) :", "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp");
+                ed.focus();
+                ed.execCommand('mceInsertContent', false, `<div style="display:flex; justify-content:center; margin:15px 0;"><video width="560" height="315" poster="${poster}" controls muted style="border-radius:12px; background:#000; object-fit: cover;" onmouseover="this.play(); this.muted=false;" onmouseout="this.pause(); this.muted=true;"><source src="${url}" type="video/mp4"></video></div><p></p>`);
+            }
         }));
+
         toolbar.appendChild(create('btn-sc', '☁️ SC', () => {
             const url = prompt("Lien SoundCloud :");
             if(url){ ed.focus(); ed.execCommand('mceInsertContent', false, `<iframe width="100%" height="166" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}"></iframe><p></p>`); }
