@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal TinyMCE - ULTIMATE V5.8.3
+// @name         Expert Editor Universal - ULTIMATE V5.9.4
 // @namespace    https://github.com/Steven17200
-// @version      5.8.3
-// @description  POLICES MANUSCRITES ATTACHÉES + MACHINE USÉE + POSTER ODYSEE + TOUT V5.8.2
+// @version      5.9.4
+// @description  CONSERVATION STRICTE V5.9.3 + AJOUT MENU SURLIGNAGE COULEURS
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -19,7 +19,7 @@
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
-    const MISTRAL_API_KEY = 'key api';
+    const MISTRAL_API_KEY = 'z6hnb44CCvYe0sqazH3PrJLFC3PFGPkp';
 
     function appelMistral(ed, btn, systemPrompt, finalLabel, fullContent = false) {
         let text = fullContent ? ed.getContent({ format: 'text' }) : ed.selection.getContent({ format: 'text' });
@@ -76,10 +76,10 @@
         const usBtn = create('btn-ai-us', 'US', () => { appelMistral(ed, usBtn, "Translate to Texan English.", 'US'); });
         usBtn.style.color = "#ffb300"; toolbar.appendChild(usBtn);
         toolbar.appendChild(create('btn-presentation', '📢 Présentation', () => {
-            ed.focus(); ed.execCommand('mceInsertContent', false, " (expérimentation) Bonjour, je suis Mistral, l'IA");
+            ed.focus(); ed.execCommand('mceInsertContent', false, " (Script expérimentale) Bonjour, je suis Mistral ✨, l'IA Française");
         }));
         toolbar.appendChild(create('btn-ai-analyze', '🧐 Analyse', () => {
-            const promptMistral = `Tu es un technicien réseau aguerri, spécialiste dans les telecom  : Remercie @Auteur 'a écrit' pour son message et en citant son texte après 'a écrit' : Analyse son propos (points forts/faibles, précisions techniques).et Donne juste ton avis d’expert (exemples concrets, comparaisons, données historiques si pertinent). et Termine par une question ouverte ou une suggestion. **Style** : direct, technique mais accessible, sans formules creuses. **Format** : 3-5 phrases max par point.`;
+            const promptMistral = `Analyse en profondeur les implications de l'article, Structure ta réponse en 3 parties : contexte, arguments pour/contre, conclusion. et donne-moi des chiffres concernant le secteur professionnel et particulier. Fais-moi... une proposition la plus pertinente possible.`;
             appelMistral(ed, document.getElementById('btn-ai-analyze'), promptMistral, '🧐 Analyse', true);
         }));
 
@@ -91,7 +91,7 @@
         sizeSelect.onchange = () => { ed.focus(); ed.execCommand('FontSize', false, sizeSelect.value); };
         toolbar.appendChild(sizeSelect);
 
-        // --- MENU POLICES (FOCUS ATTACHÉES) ---
+        // --- MENU POLICES ---
         const fontSelect = document.createElement('select');
         fontSelect.style = "padding: 3px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; max-width: 150px;";
         const fonts = [
@@ -114,8 +114,7 @@
         ];
         fonts.forEach(f => {
             const o = document.createElement('option'); o.value = f.v; o.innerHTML = f.n;
-            if(f.n.startsWith('--')) o.disabled = true;
-            fontSelect.appendChild(o);
+            if(f.n.startsWith('--')) o.disabled = true; fontSelect.appendChild(o);
         });
         fontSelect.onchange = () => { ed.focus(); ed.execCommand('FontName', false, fontSelect.value); };
         toolbar.appendChild(fontSelect);
@@ -162,7 +161,7 @@
             if(id){ ed.focus(); ed.execCommand('mceInsertContent', false, `<div style="display:flex; justify-content:center; margin:15px 0;"><iframe width="315" height="560" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:12px; background:#000;"></iframe></div><p></p>`); }
         }));
         toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
-            const url = prompt("Lien YouTube Music :");
+            const url = prompt("Lien Music :");
             const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
             if(id){ ed.focus(); ed.execCommand('mceInsertContent', false, `<div style="margin:10px 0;"><iframe width="100%" height="60" src="https://www.youtube.com/embed/${id}" frameborder="0" style="border-radius:8px; background:#000;"></iframe></div><p></p>`); }
         }));
@@ -178,6 +177,68 @@
             const url = prompt("Lien SoundCloud :");
             if(url){ ed.focus(); ed.execCommand('mceInsertContent', false, `<iframe width="100%" height="166" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}"></iframe><p></p>`); }
         }));
+
+        // --- AJOUT VIMEO ---
+        toolbar.appendChild(create('btn-vimeo', '📹 Vimeo', () => {
+            const url = prompt("Lien Vimeo :");
+            const id = url ? url.match(/(?:vimeo\.com\/|video\/)(\d+)/)?.[1] : null;
+            if(id){ ed.focus(); ed.execCommand('mceInsertContent', false, `<div style="display:flex; justify-content:center; margin:15px 0;"><iframe src="https://player.vimeo.com/video/${id}" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="border-radius:12px; background:#000;"></iframe></div><p></p>`); }
+        }));
+
+        // --- AJOUT MENU LOGOS TV ---
+        const logoList = [
+            { name: "📺 Logos TV", url: "" },
+            { name: "TF1", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
+            { name: "France 2", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/France_2_-_logo_2018.svg/1280px-France_2_-_logo_2018.svg.png" },
+            { name: "France 3", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/France_3_-_logo_2018.svg/3840px-France_3_-_logo_2018.svg.png" },
+            { name: "Canal+", url: "https://i.postimg.cc/WhK3PR9S/Canal.png" },
+            { name: "FreeBox Ultra", url: "https://i.postimg.cc/yxLtY09C/image.png" },
+            { name: "HBO", url: "https://i.postimg.cc/YCP7xBhZ/image.png" },
+            { name: "BeIn Sport", url: "https://i.postimg.cc/SJ5sp0ZD/bein.webp" }
+        ];
+
+        const logoSel = document.createElement('select');
+        Object.assign(logoSel.style, {
+            background: '#180', color: '#eee', border: '1px solid #555', padding: '4px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer'
+        });
+
+        logoList.forEach(l => {
+            const o = document.createElement('option'); o.value = l.url; o.textContent = l.name; logoSel.appendChild(o);
+        });
+
+        logoSel.onchange = (e) => {
+            const logoUrl = e.target.value;
+            if (logoUrl) { ed.focus(); ed.execCommand('mceInsertContent', false, `<img src="${logoUrl}" style="height:auto; width:48px; vertical-align:middle; margin:5px;">`); }
+            e.target.selectedIndex = 0;
+        };
+        toolbar.appendChild(logoSel);
+
+        // --- NOUVEAU MENU SURLIGNAGE COULEURS ---
+        const highlightList = [
+            { n: "🖍️ Surligner", c: "" },
+            { n: "Jaune Vif", c: "#ffff00" },
+            { n: "Vert Fluo", c: "#00ff00" },
+            { n: "Bleu Ciel", c: "#87ceeb" },
+            { n: "Rose Bonbon", c: "#ffc0cb" },
+            { n: "Orange", c: "#ffa500" },
+            { n: "Gris Clair", c: "#d3d3d3" },
+            { n: "❌ Effacer", c: "transparent" }
+        ];
+
+        const hlSel = document.createElement('select');
+        Object.assign(hlSel.style, {
+            background: '#fff', color: '#000', border: '1px solid #ccc', padding: '4px', borderRadius: '3px', fontSize: '12px', cursor: 'pointer'
+        });
+
+        highlightList.forEach(h => {
+            const o = document.createElement('option'); o.value = h.c; o.textContent = h.n; hlSel.appendChild(o);
+        });
+
+        hlSel.onchange = (e) => {
+            if (e.target.value) { ed.focus(); ed.execCommand('HiliteColor', false, e.target.value); }
+            e.target.selectedIndex = 0;
+        };
+        toolbar.appendChild(hlSel);
 
         container.insertBefore(toolbar, container.firstChild);
     }
