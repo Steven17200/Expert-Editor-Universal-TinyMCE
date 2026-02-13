@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal - ULTIMATE V5.9.5 Secure + Palette Surlignage
+// @name         Expert Editor Universal - ULTIMATE V5.9.5 Secure + Odysee taille
 // @namespace    https://github.com/Steven17200
 // @version      5.9.5
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Palette surlignage + TOUT intact
+// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + TOUT intact
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -91,6 +91,21 @@
 
         setTimeout(() => { btn.disabled = false; btn.innerHTML = originalLabel; }, 2000);
     }
+
+    // Fix popup tableau (labels + palette forcés)
+    const styleFix = document.createElement('style');
+    styleFix.textContent = `
+        .mce-window-body, .mce-tableprops { min-width: 720px !important; min-height: 480px !important; overflow: visible !important; }
+        .mce-tableprops label { white-space: nowrap !important; width: 240px !important; display: inline-block !important; font-size: 14px !important; margin-right: 10px !important; }
+        .mce-tableprops input[type="text"], .mce-tableprops select { width: 220px !important; height: 32px !important; }
+        .mce-colorpicker, .mce-colorbox, .mce-flat-colorpicker {
+            display: block !important; visibility: visible !important; opacity: 1 !important;
+            width: 200px !important; height: 200px !important; margin: 15px auto !important;
+            border: 3px solid #444 !important; cursor: pointer !important; background: #fff !important;
+        }
+        .mce-tableprops .mce-colorbox { min-height: 36px !important; border: 2px solid #555 !important; }
+    `;
+    document.head.appendChild(styleFix);
 
     function init() {
         if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
@@ -213,37 +228,6 @@
             if (emoji) ed.execCommand('mceInsertContent', false, emoji);
         }));
 
-        // COULEURS TEXTE
-        const colors = [
-            { n: "Couleurs Texte", c: "" },
-            { n: "Noir", c: "#000000" },
-            { n: "Rouge", c: "#ff0000" },
-            { n: "Vert", c: "#00ff00" },
-            { n: "Bleu", c: "#0000ff" },
-            { n: "Jaune", c: "#ffff00" },
-            { n: "Blanc", c: "#ffffff" }
-        ];
-
-        const colSel = document.createElement('select');
-        colors.forEach(col => {
-            const o = document.createElement('option'); o.value = col.c; o.textContent = col.n; colSel.appendChild(o);
-        });
-        colSel.onchange = (e) => {
-            if (e.target.value) { ed.focus(); ed.execCommand('ForeColor', false, e.target.value); }
-            e.target.selectedIndex = 0;
-        };
-        toolbar.appendChild(colSel);
-
-        const cpT = document.createElement('input'); cpT.type = 'color'; cpT.title = "Texte"; cpT.style = "width:25px; height:25px; cursor:pointer;";
-        cpT.onchange = () => { ed.focus(); ed.execCommand('ForeColor', false, cpT.value); };
-        toolbar.appendChild(document.createTextNode(" T:"));
-        toolbar.appendChild(cpT);
-
-        const cpS = document.createElement('input'); cpS.type = 'color'; cpS.value = '#ffff00'; cpS.title = "Surlignage"; cpS.style = "width:25px; height:25px; cursor:pointer;";
-        cpS.onchange = () => { ed.focus(); ed.execCommand('HiliteColor', false, cpS.value); };
-        toolbar.appendChild(document.createTextNode(" S:"));
-        toolbar.appendChild(cpS);
-
         // MÉDIAS
         toolbar.appendChild(create('btn-yt-video', '📺 YouTube', () => {
             const url = prompt("Lien YouTube :");
@@ -269,13 +253,29 @@
             if(id) ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe src="https://player.vimeo.com/video/${id}" width="560" height="315" frameborder="0" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen style="border-radius:12px;background:#000;"></iframe></div><p></p>`);
         }));
 
+        // Odysee avec choix taille
         toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
-            const url = prompt("Lien MP4 :");
-            if(url){
-                const poster = prompt("Image poster :", "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp");
-                ed.focus();
-                ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><video width="560" height="315" poster="${poster}" controls muted style="border-radius:12px;background:#000;object-fit:cover;" onmouseover="this.play();this.muted=false;" onmouseout="this.pause();this.muted=true;"><source src="${url}" type="video/mp4"></video></div><p></p>`);
-            }
+            const url = prompt("Lien MP4 Odysee :");
+            if (!url) return;
+
+            const taille = prompt("Taille vidéo ?\n1 = Petit (320x180)\n2 = Moyen (560x315)\n3 = Grand (800x450)\n4 = Plein largeur (100%)\nTape le numéro :", "2") || "2";
+
+            let w = "560", h = "315", styleW = "";
+            if (taille === "1") { w = "320"; h = "180"; }
+            else if (taille === "2") { w = "560"; h = "315"; }
+            else if (taille === "3") { w = "800"; h = "450"; }
+            else if (taille === "4") { w = "100%"; h = "450"; styleW = "width:100%; max-width:100%;"; }
+
+            const poster = prompt("Image poster (optionnel, Enter pour défaut) :", "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp") || "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp";
+
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="display:flex;justify-content:center;margin:15px 0;">
+                    <video ${styleW ? 'style="' + styleW + '"' : ''} width="${w}" height="${h}" poster="${poster}" controls muted onmouseover="this.play(); this.muted=false;" onmouseout="this.pause(); this.muted=true;">
+                        <source src="${url}" type="video/mp4">
+                    </video>
+                </div><p></p>`
+            );
         }));
 
         toolbar.appendChild(create('btn-sc', '☁️ SC', () => {
@@ -295,9 +295,18 @@
             { name: "Youtube", url: "https://i.postimg.cc/nrRSNqBZ/Logo-Youtube.png" },
             { name: "Free TV", url: "https://i.postimg.cc/FKwcRpXr/Logo%20Free%20tv.png" },
             { name: "Filmo TV", url: "https://i.postimg.cc/B6g9cYdd/filmo-by-soonor.png" },
+            { name: "Apple TV 4K", url: "https://i.postimg.cc/tsz30gJ9/Apple-TV4K.png" },
+            { name: "Google TV", url: "https://i.postimg.cc/CR4GyK5g/Google-TV-logo-svg.png" },
             { name: "Molotov TV", url: "https://i.postimg.cc/K8fm5YBM/Molotov.png" },
             { name: "Prime Video", url: "https://i.postimg.cc/BbBzGjqm/Pirme-video.png" },
-            { name: "BeIn Sport", url: "https://i.postimg.cc/SJ5sp0ZD/bein.webp" }
+            { name: "VIDAA", url: "https://i.postimg.cc/9r93Y6MT/vidaa.png" },
+            { name: "TIZEN OS", url: "https://i.postimg.cc/vcnRtJBV/Tizen.png" },
+            { name: "BeIn Sport", url: "https://i.postimg.cc/SJ5sp0ZD/bein.webp" },
+            { name: "Netflix", url: "https://i.postimg.cc/nXzpzN3F/Netflix-Logomark.png" },
+            { name: "Paramount+", url: "https://i.postimg.cc/ZWR4RXw5/Paramount-logo-svg.png" },
+            { name: "Pluto TV", url: "https://i.postimg.cc/18tstbvR/Pluto-TV-2020-logo.png" },
+            { name: "Fleche verte (OK)", url: "https://i.postimg.cc/Hrp1NRqw/Fleche-verte-(OK).png" },
+            { name: "Croix Rouge (non)", url: "https://i.postimg.cc/871gY92B/Croix-Rouge-(non).png" }
         ];
 
         const logoSel = document.createElement('select');
@@ -311,6 +320,30 @@
             e.target.selectedIndex = 0;
         };
         toolbar.appendChild(logoSel);
+
+        // SURLIGNAGE COULEURS
+        const highlightList = [
+            { n: "🖍️ Surligner", c: "" },
+            { n: "Jaune Vif", c: "#ffff00" },
+            { n: "Vert Fluo", c: "#00ff00" },
+            { n: "Bleu Ciel", c: "#87ceeb" },
+            { n: "Rose Bonbon", c: "#ffc0cb" },
+            { n: "Orange", c: "#ffa500" },
+            { n: "Gris Clair", c: "#d3d3d3" },
+            { n: "❌ Effacer", c: "transparent" }
+        ];
+
+        const hlSel = document.createElement('select');
+        Object.assign(hlSel.style, {background:'#fff', color:'#000', border:'1px solid #ccc', padding:'4px', borderRadius:'3px', fontSize:'12px', cursor:'pointer'});
+        highlightList.forEach(h => {
+            const o = document.createElement('option'); o.value = h.c; o.textContent = h.n; hlSel.appendChild(o);
+        });
+        hlSel.onchange = (e) => {
+            if (e.target.value) { ed.focus(); ed.execCommand('HiliteColor', false, e.target.value); }
+            e.target.selectedIndex = 0;
+        };
+        toolbar.appendChild(hlSel);
+
         container.insertBefore(toolbar, container.firstChild);
     }
 
