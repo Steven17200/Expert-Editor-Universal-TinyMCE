@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Expert Editor Universal - ULTIMATE V5.9.5 Secure + Odysee taille
+// @name         Expert Editor Universal - ULTIMATE
 // @namespace    https://github.com/Steven17200
-// @version      5.9.5
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + TOUT intact
+// @version      5.9.6
+// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage + TOUT intact
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -212,17 +212,14 @@
             ed.focus();
             ed.execCommand('mceInsertTable');
         }));
-
         toolbar.appendChild(create('btn-link', '🔗', () => {
             const url = prompt("Lien :");
             if (url) ed.execCommand('mceInsertLink', false, url);
         }));
-
         toolbar.appendChild(create('btn-image', '🖼️', () => {
             const url = prompt("Image URL :");
             if (url) ed.execCommand('mceInsertContent', false, `<img src="${url}" style="max-width:100%;height:auto;">`);
         }));
-
         toolbar.appendChild(create('btn-emoji', '😀', () => {
             const emoji = prompt("Emoji :");
             if (emoji) ed.execCommand('mceInsertContent', false, emoji);
@@ -234,19 +231,31 @@
             const id = url ? url.match(/(?:v=|\/|shorts\/)([\w-]{11})/)?.[1] : null;
             if(id) ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe width="560" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:12px;background:#000;"></iframe></div><p></p>`);
         }));
-
         toolbar.appendChild(create('btn-yt-shorts', '🎬 SHORTS', () => {
             const url = prompt("Lien Short :");
             const id = url ? url.match(/(?:\/shorts\/|v=)([\w-]{11})/)?.[1] : null;
             if(id) ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe width="315" height="560" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:12px;background:#000;"></iframe></div><p></p>`);
         }));
+        // Music avec validation ID YouTube
+toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
+    const url = prompt("Lien Music :");
+    if (!url) return;
 
-        toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
-            const url = prompt("Lien Music :");
-            const id = url ? url.match(/(?:v=|\/)([\w-]+)/)?.[1] : null;
-            if(id) ed.execCommand('mceInsertContent', false, `<div style="margin:10px 0;"><iframe width="100%" height="60" src="https://www.youtube.com/embed/${id}" frameborder="0" style="border-radius:8px;background:#000;"></iframe></div><p></p>`);
-        }));
+    // Regex très permissive pour tous les formats YouTube/Music
+    const match = url.match(/(?:v=|youtu\.be\/|\/embed\/|music\.youtube\.com\/watch\?v=|\/watch\?v=)([\w-]{11})/i);
+    const id = match ? match[1] : null;
 
+    if (id) {
+        ed.focus();
+        ed.execCommand('mceInsertContent', false,
+            `<div style="margin:10px 0;">
+                <iframe width="100%" height="60" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:8px;background:#000;"></iframe>
+            </div><p></p>`
+        );
+    } else {
+        alert("Lien invalide pour YouTube Music !\n\nExemples valides :\n• https://music.youtube.com/watch?v=dQw4w9WgXcQ\n• https://youtu.be/dQw4w9WgXcQ\n• https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    }
+}));
         toolbar.appendChild(create('btn-vimeo', '📹 Vimeo', () => {
             const url = prompt("Lien Vimeo :");
             const id = url ? url.match(/(?:vimeo\.com\/|video\/)(\d+)/)?.[1] : null;
@@ -257,17 +266,13 @@
         toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
             const url = prompt("Lien MP4 Odysee :");
             if (!url) return;
-
             const taille = prompt("Taille vidéo ?\n1 = Petit (320x180)\n2 = Moyen (560x315)\n3 = Grand (800x450)\n4 = Plein largeur (100%)\nTape le numéro :", "2") || "2";
-
             let w = "560", h = "315", styleW = "";
             if (taille === "1") { w = "320"; h = "180"; }
             else if (taille === "2") { w = "560"; h = "315"; }
             else if (taille === "3") { w = "800"; h = "450"; }
             else if (taille === "4") { w = "100%"; h = "450"; styleW = "width:100%; max-width:100%;"; }
-
             const poster = prompt("Image poster (optionnel, Enter pour défaut) :", "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp") || "https://thumbs.odycdn.com/148271f31f8dc54fdca7acb86005784f.webp";
-
             ed.focus();
             ed.execCommand('mceInsertContent', false,
                 `<div style="display:flex;justify-content:center;margin:15px 0;">
@@ -277,7 +282,6 @@
                 </div><p></p>`
             );
         }));
-
         toolbar.appendChild(create('btn-sc', '☁️ SC', () => {
             const url = prompt("Lien SoundCloud :");
             if(url) ed.execCommand('mceInsertContent', false, `<iframe width="100%" height="166" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}"></iframe><p></p>`);
@@ -343,6 +347,56 @@
             e.target.selectedIndex = 0;
         };
         toolbar.appendChild(hlSel);
+
+        // ────────────────────────────────────────────────
+        //  PALETTE COULEUR TEXTE (ForeColor)
+        // ────────────────────────────────────────────────
+        const textColorLabel = document.createElement('span');
+        textColorLabel.textContent = 'Texte : ';
+        textColorLabel.style = 'font-size:12px; color:#333; margin-right:4px; font-weight:bold;';
+        toolbar.appendChild(textColorLabel);
+
+        const textColorPicker = document.createElement('input');
+        textColorPicker.type = 'color';
+        textColorPicker.value = '#000000'; // noir par défaut
+        textColorPicker.title = 'Couleur du texte';
+        textColorPicker.style = 'width:32px; height:24px; padding:0; border:1px solid #999; border-radius:4px; vertical-align:middle; cursor:pointer;';
+        textColorPicker.onchange = (e) => {
+            if (e.target.value) {
+                ed.focus();
+                ed.execCommand('ForeColor', false, e.target.value);
+            }
+        };
+        toolbar.appendChild(textColorPicker);
+
+        // ────────────────────────────────────────────────
+        //  PALETTE SUR LIGNAGE (HiliteColor) – version palette native au lieu du select
+        // ────────────────────────────────────────────────
+        const highlightLabel = document.createElement('span');
+        highlightLabel.textContent = 'Surlign. : ';
+        highlightLabel.style = 'font-size:12px; color:#333; margin-left:12px; margin-right:4px; font-weight:bold;';
+        toolbar.appendChild(highlightLabel);
+
+        const highlightPicker = document.createElement('input');
+        highlightPicker.type = 'color';
+        highlightPicker.value = '#ffff00'; // jaune vif par défaut
+        highlightPicker.title = 'Couleur de surlignage';
+        highlightPicker.style = 'width:32px; height:24px; padding:0; border:1px solid #999; border-radius:4px; vertical-align:middle; cursor:pointer;';
+        highlightPicker.onchange = (e) => {
+            if (e.target.value) {
+                ed.focus();
+                ed.execCommand('HiliteColor', false, e.target.value);
+            }
+        };
+        toolbar.appendChild(highlightPicker);
+
+        // Optionnel : petit bouton pour effacer le surlignage rapidement
+        const clearHighlightBtn = create('btn-clear-highlight', '❌', () => {
+            ed.focus();
+            ed.execCommand('HiliteColor', false, 'transparent');
+        });
+        clearHighlightBtn.style = 'margin-left:8px; padding:4px 8px; font-size:14px;';
+        toolbar.appendChild(clearHighlightBtn);
 
         container.insertBefore(toolbar, container.firstChild);
     }
