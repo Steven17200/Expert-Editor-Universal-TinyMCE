@@ -9,6 +9,8 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @updateURL    https://raw.githubusercontent.com/Steven17200/Expert-Editor-Universal-TinyMCE/main/Expert_Editor_Universal%20.user.js
+// @downloadURL  https://raw.githubusercontent.com/Steven17200/Expert-Editor-Universal-TinyMCE/main/Expert_Editor_Universal%20.user.js
 // ==/UserScript==
 
 (function() {
