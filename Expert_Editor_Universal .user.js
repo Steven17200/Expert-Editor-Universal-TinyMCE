@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Expert Editor Universal V2
+// @name         Expert Editor Universal V4
 // @namespace    https://github.com/Steven17200
 // @version      6.0.1
 // @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code
@@ -199,7 +199,7 @@
         // --- 3. TAILLES ---
         const sizeSelect = document.createElement('select');
         sizeSelect.style = "padding:3px;border:1px solid #ccc;border-radius:3px;font-size:12px;";
-        ['6pt','8pt','10pt','12pt','14pt','18pt','24pt','36pt','48pt','72pt'].forEach(s => {
+        ['4pt','6pt','8pt','10pt','12pt','14pt','18pt','20pt','24pt','28pt','36pt','48pt','72pt'].forEach(s => {
             const o = document.createElement('option');
             o.value = s; o.textContent = s;
             if (s === '12pt') o.selected = true;
@@ -228,6 +228,10 @@
             {n:'Orbitron (Star Wars)', v:'Orbitron, sans-serif'},
             {n:'Special Elite (Machine usée)', v:'"Special Elite", serif'},
             {n:'Impact (TITRE)', v:'Impact'},
+            {n:'-- MARQUES / THÈMES --', v:'Bebas Neue'},
+            {n:'NETFLIX (Impacté)', v:'"Bebas Neue", Arial Black, sans-serif'},
+            {n:'FREE (Opérateur)', v:'"Inter", "Segoe UI", sans-serif'},
+            {n:'ALLOCINÉ (Rond & Gras)', v:'"Arial Black", "Century Gothic", sans-serif'},
             {n:'-- NORMALES --', v:'Arial'},
             {n:'Arial', v:'Arial'},
             {n:'Verdana', v:'Verdana'}
@@ -243,7 +247,46 @@
             ed.execCommand('FontName', false, e.target.value);
         };
         toolbar.appendChild(fontSelect);
+        // --- 5. CARACTÈRES SPÉCIAUX & SYMBOLES ---
+        const charSelect = document.createElement('select');
+        charSelect.style = "padding:3px;border:1px solid #ccc;border-radius:3px;font-size:12px;max-width:120px;margin-left:5px;";
 
+        const chars = [
+            {n:'Insertion...', v:''},
+            {n:'-- MAJUSCULES ACCENTUÉES --', v:''},
+            {n:'É (E accent aigu)', v:'É'},
+            {n:'È (E accent grave)', v:'È'},
+            {n:'À (A accent grave)', v:'À'},
+            {n:'Ç (C cédille)', v:'Ç'},
+            {n:'-- ICÔNES CONTACT --', v:''},
+            {n:'📞 (Téléphone classique)', v:'📞'},
+            {n:'📱 (Téléphone portable)', v:'📱'},
+            {n:'✉️ (Enveloppe / Email)', v:'✉️'},
+            {n:'📧 (Email carré)', v:'📧'},
+            {n:'-- CINÉMA & COUTUME --', v:''},
+            {n:'🎬 (Clap de cinéma)', v:'🎬'},
+            {n:'🍿 (Pop-corn)', v:'🍿'},
+            {n:'⭐ (Étoile)', v:'⭐'}
+        ];
+
+        chars.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.v; o.textContent = c.n;
+            if (c.n.startsWith('--')) o.disabled = true;
+            charSelect.appendChild(o);
+        });
+
+        charSelect.onchange = (e) => {
+            if (e.target.value !== '') {
+                ed.focus();
+                // Insère le caractère directement à la position du curseur
+                ed.execCommand('insertHTML', false, e.target.value);
+                // Réinitialise le menu sur "Insertion..." pour pouvoir ré-utiliser le même caractère
+                charSelect.selectedIndex = 0;
+            }
+        };
+
+        toolbar.appendChild(charSelect);
         // --- 5. ÉDITION CLASSIQUE ---
         toolbar.appendChild(create('btn-bold', 'B', () => ed.execCommand('Bold')));
         toolbar.appendChild(create('btn-italic', 'I', () => ed.execCommand('Italic')));
@@ -262,7 +305,19 @@
             ed.focus();
             ed.execCommand('mceInsertTable');
         }));
-
+        // --- CARACTÈRES SPÉCIAUX ---
+        toolbar.appendChild(create('btn-arrow-right', '→', () => {
+             ed.execCommand('mceInsertContent', false, '→');
+        }));
+        toolbar.appendChild(create('btn-arrow-left', '←', () => {
+             ed.execCommand('mceInsertContent', false, '←');
+        }));
+        toolbar.appendChild(create('btn-double-angle-right', '»', () => {
+             ed.execCommand('mceInsertContent', false, '»');
+        }));
+        toolbar.appendChild(create('btn-double-angle-left', '«', () => {
+             ed.execCommand('mceInsertContent', false, '«');
+        }));
         // AJOUT BOUTON ZONE DE CODE
         toolbar.appendChild(create('btn-code-zone', '💻 Code', () => {
             ed.focus();
@@ -283,81 +338,249 @@
             if (emoji) ed.execCommand('mceInsertContent', false, emoji);
         }));
 
-        // --- 7. MÉDIAS ---
-        toolbar.appendChild(create('btn-yt-video', '📺 YouTube', () => {
-            const url = prompt("Lien YouTube (ou juste l'ID) :");
-            if (!url) return;
-            const idMatch = url.match(/(?:v=|\/|shorts\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
-            const id = idMatch ? idMatch[1] : null;
-            if (!id) { alert("ID YouTube non détecté."); return; }
-            const largeurStr = prompt("Largeur (pixels) ?", "560");
-            let width = parseInt(largeurStr, 10) || 560;
-            const height = Math.round(width * 9 / 16);
-            let posterUrl = `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
-            const customPoster = prompt("Image poster perso (optionnel) :");
-            if (customPoster && customPoster.trim()) posterUrl = customPoster.trim();
-            ed.focus();
-            ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe width="${width}" height="${height}" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:12px;background:#000;" allow="autoplay; encrypted-media" poster="${posterUrl}"></iframe></div><p></p>`);
-        }));
+// --- 7. MÉDIAS ---
+// --- Speedtest (image PNG) ---
+toolbar.appendChild(create('btn-speedtest', '📊 Speedtest', () => {
+    const url = prompt("Colle le lien Speedtest (ex: https://www.speedtest.net/result/a/11591345182) :");
+    if (!url) return;
 
-        toolbar.appendChild(create('btn-yt-shorts', '🎬 SHORTS', () => {
-            const url = prompt("Lien Short :");
-            const id = url ? url.match(/(?:\/shorts\/|v=)([\w-]{11})/)?.[1] : null;
-            if(id) ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe width="315" height="560" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:12px;background:#000;"></iframe></div><p></p>`);
-        }));
+    // Extraction de l'ID (supporte les formats : /result/a/ID ou /result/ID)
+    const idMatch = url.match(/(?:result\/a\/|result\/)([a-zA-Z0-9]+)/);
+    const id = idMatch ? idMatch[1] : null;
+    if (!id) {
+        alert("❌ ID non détecté. Vérifie le lien.");
+        return;
+    }
 
-        toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
-            const url = prompt("Lien Music :");
-            if (!url) return;
-            const match = url.match(/(?:v=|youtu\.be\/|\/embed\/|music\.youtube\.com\/watch\?v=|\/watch\?v=)([\w-]{11})/i);
-            const id = match ? match[1] : null;
-            if (id) {
-                ed.focus();
-                ed.execCommand('mceInsertContent', false, `<div style="margin:10px 0;"><iframe width="100%" height="60" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen style="border-radius:8px;background:#000;"></iframe></div><p></p>`);
-            } else { alert("Lien invalide !"); }
-        }));
+    // URL de l'image générée par Speedtest
+    const imageUrl = `https://www.speedtest.net/result/a/${id}.png`;
 
+    ed.focus();
+    ed.execCommand('mceInsertContent', false,
+        `<div style="display:flex;justify-content:center;margin:15px 0;">
+            <img src="${imageUrl}"
+                 style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+        </div><p></p>`
+    );
+    alert("✅ Speedtest inséré (image PNG).");
+}));
+        // --- Intégrer une page web (iframe) ---
+toolbar.appendChild(create('btn-embed-webpage', '🌐 Page Web', () => {
+    const url = prompt("URL de la page à intégrer (ex: https://boutique.canalplus.com/) :");
+    if (!url) return;
+
+    // Vérification basique de l'URL (doit commencer par http:// ou https://)
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        alert("❌ L'URL doit commencer par http:// ou https://");
+        return;
+    }
+
+    const width = prompt("Largeur (pixels ou %) :", "100%");
+    if (!width) return;
+
+    const height = prompt("Hauteur (pixels, ex: 500px) :", "500px");
+    if (!height) return;
+
+    ed.focus();
+    ed.execCommand('mceInsertContent', false,
+        `<div style="display:flex;justify-content:center;margin:15px 0;">
+            <iframe
+                src="${url}"
+                width="${width}"
+                height="${height}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                style="border-radius:8px; background:#fff; border:1px solid #ddd; max-width:100%;">
+            </iframe>
+        </div><p></p>`
+    );
+    alert(`✅ Page intégrée (${width} × ${height}).`);
+}));
+// YouTube avec hauteur libre + choix autoplay
+toolbar.appendChild(create('btn-yt-video', '📺 YouTube', () => {
+    const url = prompt("Lien YouTube (ou juste l'ID) :");
+    if (!url) return;
+
+    const idMatch = url.match(/(?:v=|\/|shorts\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
+    const id = idMatch ? idMatch[1] : null;
+    if (!id) { alert("ID YouTube non détecté."); return; }
+
+    const largeurStr = prompt("Largeur (pixels) ?", "560");
+    let width = parseInt(largeurStr, 10) || 560;
+
+    const hauteurStr = prompt("Hauteur (pixels) ?", "315");
+    let height = parseInt(hauteurStr, 10) || 315;
+
+    const autoPlayChoix = prompt("Autoplay ? (1 = oui / 0 = non)", "1");
+    const autoplay = (autoPlayChoix === "1") ? "1" : "0";
+
+    const iframeSrc = `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=0&loop=1&playlist=${id}&enablejsapi=1`;
+
+    ed.focus();
+    ed.execCommand('mceInsertContent', false,
+        `<div style="display:flex;justify-content:center;margin:15px 0;">
+            <iframe
+                width="${width}"
+                height="${height}"
+                src="${iframeSrc}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                style="border-radius:12px;background:#000;"
+                allowfullscreen>
+            </iframe>
+        </div><p></p>`
+    );
+
+    const status = (autoplay === "1") ? "avec autoplay" : "sans autoplay";
+    alert(`YouTube inséré (${width}×${height}) ${status}. Le son peut demander un clic selon le navigateur.`);
+}));
+// --- X (Twitter) VIDÉO - sans barre de défilement vertical (version renforcée) ---
+toolbar.appendChild(create('btn-x-video', '𝕏 Vidéo', () => {
+    const url = prompt("Lien X complet ou ID du post :");
+    if (!url) return;
+
+    let postId = null;
+    const idMatch = url.match(/\/status\/(\d+)/);
+    if (idMatch) postId = idMatch[1];
+    else if (/^\d{15,20}$/.test(url.trim())) postId = url.trim();
+
+    if (!postId) {
+        alert("ID non détecté. Exemple : https://x.com/user/status/1234567890123456789");
+        return;
+    }
+
+    const choix = prompt("Choisis :\n1 = iframe direct (hauteur auto)\n2 = hauteur manuelle\n3 = iframe + essayer autoplay", "1");
+
+    let xHtml = '';
+
+    if (choix === "1") {
+        xHtml = `
+            <div style="display:flex;justify-content:center;margin:15px 0;">
+                <iframe
+                    src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
+                    width="560"
+                    height="auto"
+                    frameborder="0"
+                    scrolling="no"
+                    style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; min-height:500px; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
+                </iframe>
+            </div><p></p>`;
+    }
+    else if (choix === "2") {
+        const largeurStr = prompt("Largeur pixels ?", "560");
+        let width = parseInt(largeurStr, 10) || 560;
+        const hauteurStr = prompt("Hauteur pixels ? (600-900 pour vidéo)", "700");
+        let height = parseInt(hauteurStr, 10) || 700;
+
+        xHtml = `
+            <div style="display:flex;justify-content:center;margin:15px 0;">
+                <iframe
+                    src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
+                    width="${width}"
+                    height="${height}"
+                    frameborder="0"
+                    scrolling="no"
+                    style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
+                </iframe>
+            </div><p></p>`;
+    }
+    else {
+        const largeurStr = prompt("Largeur pixels ?", "560");
+        let width = parseInt(largeurStr, 10) || 560;
+        const hauteurStr = prompt("Hauteur pixels ?", "700");
+        let height = parseInt(hauteurStr, 10) || 700;
+
+        xHtml = `
+            <div style="display:flex;justify-content:center;margin:15px 0;">
+                <iframe
+                    src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
+                    width="${width}"
+                    height="${height}"
+                    frameborder="0"
+                    scrolling="no"
+                    allow="autoplay; encrypted-media"
+                    style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
+                </iframe>
+            </div><p></p>`;
+    }
+
+    ed.focus();
+    ed.execCommand('mceInsertContent', false, xHtml);
+    alert("Post X inséré sans barre de défilement (version renforcée).");
+}));
+// --- YouTube Music (player qui démarre) ---
+toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
+    const url = prompt("Lien YouTube Music :");
+    if (!url) return;
+
+    const match = url.match(/(?:v=|youtu\.be\/|\/embed\/|music\.youtube\.com\/watch\?v=|\/watch\?v=)([\w-]{11})/i);
+    const id = match ? match[1] : null;
+    if (!id) { alert("Lien invalide !"); return; }
+
+    ed.focus();
+    ed.execCommand('mceInsertContent', false,
+        `<div style="margin:10px 0;">
+            <iframe width="100%" height="80"
+                src="https://www.youtube.com/embed/${id}?autoplay=1&controls=1&rel=0"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                style="border-radius:8px;background:#000;">
+            </iframe>
+        </div><p></p>`
+    );
+
+    alert("YouTube Music inséré avec autoplay. Le son démarre souvent après un clic (règles navigateur).");
+}));
         toolbar.appendChild(create('btn-vimeo', '📹 Vimeo', () => {
             const url = prompt("Lien Vimeo :");
             const id = url ? url.match(/(?:vimeo\.com\/|video\/)(\d+)/)?.[1] : null;
             if(id) ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe src="https://player.vimeo.com/video/${id}" width="560" height="315" frameborder="0" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen style="border-radius:12px;background:#000;"></iframe></div><p></p>`);
         }));
+toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
+    const url = prompt("Lien Odysee (ex: https://odysee.com/@Plex:02/Champs-Élysées:e) :");
+    if (!url) return;
 
-        toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
-            const url = prompt("Lien MP4 Odysee :");
-            if (!url) return;
-            const taille = prompt("Taille ? (1:320, 2:560, 3:800, 4:100%)", "2") || "2";
-            let w = "560", h = "315", styleW = "";
-            if (taille === "1") { w = "320"; h = "180"; }
-            else if (taille === "2") { w = "560"; h = "315"; }
-            else if (taille === "3") { w = "800"; h = "450"; }
-            else if (taille === "4") { w = "100%"; h = "450"; styleW = "width:100%; max-width:100%;"; }
+    // Transformer le lien utilisateur en URL d'embedding
+    let embedUrl = url.replace("odysee.com/", "odysee.com/$/embed/");
 
-            const poster = prompt("Poster URL :", "https://i.postimg.cc/fyQ4vRb5/C.gif");
-            const videoId = 'odysee-video-' + Date.now();
-            const videoHtml = `
-                <div style="display:flex;justify-content:center;margin:15px 0;position:relative;">
-                    <video id="${videoId}" ${styleW ? 'style="' + styleW + '"' : ''} width="${w}" height="${h}" poster="${poster}" controls muted autoplay>
-                        <source src="${url}" type="video/mp4">
-                    </video>
-                    <div id="${videoId}-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.1); display:flex; justify-content:center; align-items:center; color:white; font-size:24px; cursor:pointer;">
-                        🔊 Cliquez pour activer le son
-                    </div>
-                </div><p></p>`;
-            ed.focus();
-            ed.execCommand('mceInsertContent', false, videoHtml);
-            setTimeout(() => {
-                const video = document.getElementById(videoId);
-                const overlay = document.getElementById(`${videoId}-overlay`);
-                if (video && overlay) {
-                    overlay.addEventListener('click', function() {
-                        video.muted = false;
-                        overlay.style.display = 'none';
-                    });
-                }
-            }, 100);
-        }));
+    // Demander l'orientation
+    const orientation = prompt("Orientation ? (1: Horizontal, 2: Vertical)", "1") || "1";
+    let w, h, styleW = "";
 
+    if (orientation === "1") {
+        // Horizontal (16:9)
+        const taille = prompt("Taille horizontale ? (1: 320, 2: 560, 3: 800, 4: 100%)", "2") || "2";
+        if (taille === "1") { w = "320"; h = "180"; }
+        else if (taille === "2") { w = "560"; h = "315"; }
+        else if (taille === "3") { w = "800"; h = "450"; }
+        else if (taille === "4") { w = "100%"; h = "450"; styleW = "width:100%; max-width:100%;"; }
+    } else {
+        // Vertical (9:16)
+        const taille = prompt("Taille verticale ? (1: 180, 2: 315, 3: 450, 4: 100%)", "2") || "2";
+        if (taille === "1") { w = "180"; h = "320"; }
+        else if (taille === "2") { w = "315"; h = "560"; }
+        else if (taille === "3") { w = "450"; h = "800"; }
+        else if (taille === "4") { w = "100%"; h = "80vh"; styleW = "width:100%; max-width:560px;"; }
+    }
+
+    // Générer le code HTML pour l'iframe
+    const videoHtml = `
+        <div style="display:flex;justify-content:center;margin:15px 0;">
+            <iframe
+                ${styleW ? 'style="' + styleW + '"' : ''}
+                width="${w}"
+                height="${h}"
+                src="${embedUrl}"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+        </div><p></p>`;
+
+    ed.focus();
+    ed.execCommand('mceInsertContent', false, videoHtml);
+}));
         // --- 8. LOGOS TV (TOUS CONSERVÉS) ---
         const logoList = [
             { name: "📺 Logos TV", url: "" },
@@ -374,6 +597,8 @@
             { name: "Free TV", url: "https://i.postimg.cc/FKwcRpXr/Logo%20Free%20tv.png" },
             { name: "Filmo TV", url: "https://i.postimg.cc/B6g9cYdd/filmo-by-soonor.png" },
             { name: "Apple TV 4K", url: "https://i.postimg.cc/tsz30gJ9/Apple-TV4K.png" },
+            { name: "Apple TV+", url: "https://i.postimg.cc/vBKN2YYH/Apple-TV-logo.png" },
+            { name: "Apple Music", url: "https://i.postimg.cc/h46B6Trc/Apple-Music-Logo.png" },
             { name: "Google TV", url: "https://i.postimg.cc/CR4GyK5g/Google-TV-logo-svg.png" },
             { name: "Molotov TV", url: "https://i.postimg.cc/K8fm5YBM/Molotov.png" },
             { name: "Prime Video", url: "https://i.postimg.cc/BbBzGjqm/Pirme-video.png" },
@@ -388,8 +613,10 @@
             { name: "Disney+", url: "https://i.postimg.cc/SjVNHRr5/Dinsey.png" },
             { name: "Universal+", url: "https://i.postimg.cc/K4QvCjNd/Universal.png" },
             { name: "Orange Telecom", url: "https://i.postimg.cc/qvngQm8F/Orange.webp" },
+            { name: "Ligue1+", url: "https://i.postimg.cc/HnxMXRqt/Ligue1.webp" },
             { name: "SFR", url: "https://i.postimg.cc/k2VBXN5X/SFR.png" },
             { name: "Free", url: "https://i.postimg.cc/mh8DYpcv/Free-logo-svg.png" },
+            { name: "Free PRO", url: "https://i.postimg.cc/sgS2KrXz/Free-PRO.png" },
             { name: "Free Mobile", url: "https://i.postimg.cc/t72T3vZ0/Logo-free-mobile2022.png" },
             { name: "Reef", url: "https://i.postimg.cc/Y99Jh0KC/reef.png" },
             { name: "Bouygue Telecom", url: "https://i.postimg.cc/ZW9CKPqC/Logo-By-Tel-Ent.png" },
@@ -401,7 +628,9 @@
             { name: "Service", url: "https://i.postimg.cc/9r3J5XQ8/Service.png" },
             { name: "Prix", url: "https://i.postimg.cc/56cnd92P/Prix.png" },
             { name: "Fleche verte (OK)", url: "https://i.postimg.cc/Hrp1NRqw/Fleche-verte-(OK).png" },
-            { name: "Croix Rouge (non)", url: "https://i.postimg.cc/871gY92B/Croix-Rouge-(non).png" }
+            { name: "Croix Rouge (non)", url: "https://i.postimg.cc/871gY92B/Croix-Rouge-(non).png" },
+            { name: "BOX DELTA", url: "https://i.postimg.cc/VJGyQBL1/freebox-delta-1200x1200.png" },
+            { name: "BOX ULTRA", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" }
         ];
 
         const logoSel = document.createElement('select');
