@@ -134,7 +134,94 @@
     `;
     document.head.appendChild(styleFix);
 
+    function autoAcceptCookies() {
+        // Liste des sélecteurs courants pour les boutons d'acceptation des cookies
+        const cookieSelectors = [
+            // Sélecteurs génériques
+            'button[aria-label*="accept" i]',
+            'button[aria-label*="cookie" i]',
+            'button[id*="cookie" i]',
+            'button[id*="accept" i]',
+            'button[class*="cookie" i]',
+            'button[class*="accept" i]',
+            'button[class*="consent" i]',
+            'button[class*="agree" i]',
+            // Sélecteurs spécifiques à certains sites
+            '#cookie-accept',
+            '#cookie-consent-accept',
+            '#accept-cookies',
+            '#acceptAllCookies',
+            '#cookie-ok',
+            '#cookie-button',
+            '.cookie-consent button',
+            '.cookie-banner button',
+            '.cookie-modal button',
+            '.cookie-popup button',
+            '.cookie-accept',
+            '.cookie-accept-all',
+            '.cookie-agree',
+            '.cookie-ok',
+            '.cookie-yes',
+            '.cookie-allow',
+            // Sélecteurs pour les modales (ex: Shadow DOM)
+            'div[role="dialog"] button',
+            'div[role="alertdialog"] button',
+            // Sélecteurs pour les iframes (ex: Google Consent)
+            'iframe[src*="consent"]',
+            'iframe[src*="cookie"]'
+        ];
+
+        // Fonction pour cliquer sur un bouton si trouvé
+        const clickCookieButton = () => {
+            for (const selector of cookieSelectors) {
+                const buttons = document.querySelectorAll(selector);
+                for (const btn of buttons) {
+                    if (btn.offsetParent !== null) { // Vérifie que le bouton est visible
+                        const btnText = (btn.textContent || btn.innerText || '').toLowerCase();
+                        const isAcceptButton = 
+                            btnText.includes('accept') ||
+                            btnText.includes('ok') ||
+                            btnText.includes('agree') ||
+                            btnText.includes('allow') ||
+                            btnText.includes('consent') ||
+                            btnText.includes('tout accepter') ||
+                            btnText.includes('tout autoriser') ||
+                            btnText.includes('je suis d\'accord') ||
+                            btnText.includes('d\'accord');
+
+                        if (isAcceptButton) {
+                            btn.click();
+                            console.log('✅ Bouton de cookies cliqué :', selector);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        // Essayer de cliquer sur un bouton de cookies
+        if (clickCookieButton()) {
+            // Attendre 1 seconde puis réessayer l'initialisation
+            setTimeout(() => {
+                if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
+                    tinyMCE.editors.forEach(setupEditor);
+                } else {
+                    setTimeout(init, 1000);
+                }
+            }, 1000);
+            return true;
+        }
+        return false;
+    }
+
     function init() {
+        // D'abord, essayer d'accepter les cookies automatiquement
+        if (autoAcceptCookies()) {
+            return; // On attend le callback dans autoAcceptCookies
+        }
+
+        // Sinon, vérifier si TinyMCE est déjà chargé
         if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
             tinyMCE.editors.forEach(setupEditor);
         } else {
@@ -583,7 +670,40 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
     ed.focus();
     ed.execCommand('mceInsertContent', false, videoHtml);
 }));
-        // --- 8. LOGOS TV (TOUS CONSERVÉS) ---
+        // --- 8. PUBLICATION HTML (Nouveau bouton pour insérer un cadre HTML) ---
+        toolbar.appendChild(create('btn-html-frame', '📰 Publication HTML', () => {
+            const htmlContent = prompt("Collez votre code HTML pour la publication :", "<p>Votre contenu ici...</p>");
+            if (!htmlContent) return;
+
+            // Nettoyer le HTML pour éviter les problèmes de sécurité (basique)
+            const cleanHtml = htmlContent
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Supprimer les balises script
+                .replace(/javascript:/gi, '') // Supprimer les appels javascript
+                .replace(/on\w+="[^"]*"/g, ''); // Supprimer les attributs on* (onclick, onerror, etc.)
+
+            // Créer un cadre stylisé pour la publication HTML
+            const frameHtml = `
+                <div style="
+                    border: 2px solid #4a90e2;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin: 15px 0;
+                    background-color: #f9f9f9;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    max-width: 100%;
+                    overflow: hidden;
+                ">
+                    ${cleanHtml}
+                </div>
+                <p><br></p>
+            `;
+
+            ed.focus();
+            ed.execCommand('mceInsertContent', false, frameHtml);
+            alert("✅ Publication HTML insérée avec succès !");
+        }));
+
+        // --- 10. LOGOS TV (TOUS CONSERVÉS) ---
         const logoList = [
             { name: "📺 Logos TV", url: "" },
             { name: "TF1", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
@@ -652,7 +772,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         };
         toolbar.appendChild(logoSel);
 
-        // --- 9. PALETTES COULEURS ---
+        // --- 11. PALETTES COULEURS ---
 
         // TEXTE
         const textColorLabel = document.createElement('span');
@@ -738,4 +858,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
     } else {
         init();
     }
+
+    // Vérifier périodiquement les popups de cookies (toutes les 2 secondes)
+    setInterval(autoAcceptCookies, 2000);
 })();
