@@ -583,7 +583,40 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
     ed.focus();
     ed.execCommand('mceInsertContent', false, videoHtml);
 }));
-        // --- 8. LOGOS TV (TOUS CONSERVÉS) ---
+        // --- 8. PUBLICATION HTML (Nouveau bouton pour insérer un cadre HTML) ---
+        toolbar.appendChild(create('btn-html-frame', '📰 Publication HTML', () => {
+            const htmlContent = prompt("Collez votre code HTML pour la publication :", "<p>Votre contenu ici...</p>");
+            if (!htmlContent) return;
+
+            // Nettoyer le HTML pour éviter les problèmes de sécurité (basique)
+            const cleanHtml = htmlContent
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Supprimer les balises script
+                .replace(/javascript:/gi, '') // Supprimer les appels javascript
+                .replace(/on\w+="[^"]*"/g, ''); // Supprimer les attributs on* (onclick, onerror, etc.)
+
+            // Créer un cadre stylisé pour la publication HTML
+            const frameHtml = `
+                <div style="
+                    border: 2px solid #4a90e2;
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin: 15px 0;
+                    background-color: #f9f9f9;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    max-width: 100%;
+                    overflow: hidden;
+                ">
+                    ${cleanHtml}
+                </div>
+                <p><br></p>
+            `;
+
+            ed.focus();
+            ed.execCommand('mceInsertContent', false, frameHtml);
+            alert("✅ Publication HTML insérée avec succès !");
+        }));
+
+        // --- 10. LOGOS TV (TOUS CONSERVÉS) ---
         const logoList = [
             { name: "📺 Logos TV", url: "" },
             { name: "TF1", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
@@ -652,7 +685,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         };
         toolbar.appendChild(logoSel);
 
-        // --- 9. PALETTES COULEURS ---
+        // --- 11. PALETTES COULEURS ---
 
         // TEXTE
         const textColorLabel = document.createElement('span');
