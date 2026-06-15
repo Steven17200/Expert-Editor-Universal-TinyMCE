@@ -134,7 +134,94 @@
     `;
     document.head.appendChild(styleFix);
 
+    function autoAcceptCookies() {
+        // Liste des sélecteurs courants pour les boutons d'acceptation des cookies
+        const cookieSelectors = [
+            // Sélecteurs génériques
+            'button[aria-label*="accept" i]',
+            'button[aria-label*="cookie" i]',
+            'button[id*="cookie" i]',
+            'button[id*="accept" i]',
+            'button[class*="cookie" i]',
+            'button[class*="accept" i]',
+            'button[class*="consent" i]',
+            'button[class*="agree" i]',
+            // Sélecteurs spécifiques à certains sites
+            '#cookie-accept',
+            '#cookie-consent-accept',
+            '#accept-cookies',
+            '#acceptAllCookies',
+            '#cookie-ok',
+            '#cookie-button',
+            '.cookie-consent button',
+            '.cookie-banner button',
+            '.cookie-modal button',
+            '.cookie-popup button',
+            '.cookie-accept',
+            '.cookie-accept-all',
+            '.cookie-agree',
+            '.cookie-ok',
+            '.cookie-yes',
+            '.cookie-allow',
+            // Sélecteurs pour les modales (ex: Shadow DOM)
+            'div[role="dialog"] button',
+            'div[role="alertdialog"] button',
+            // Sélecteurs pour les iframes (ex: Google Consent)
+            'iframe[src*="consent"]',
+            'iframe[src*="cookie"]'
+        ];
+
+        // Fonction pour cliquer sur un bouton si trouvé
+        const clickCookieButton = () => {
+            for (const selector of cookieSelectors) {
+                const buttons = document.querySelectorAll(selector);
+                for (const btn of buttons) {
+                    if (btn.offsetParent !== null) { // Vérifie que le bouton est visible
+                        const btnText = (btn.textContent || btn.innerText || '').toLowerCase();
+                        const isAcceptButton = 
+                            btnText.includes('accept') ||
+                            btnText.includes('ok') ||
+                            btnText.includes('agree') ||
+                            btnText.includes('allow') ||
+                            btnText.includes('consent') ||
+                            btnText.includes('tout accepter') ||
+                            btnText.includes('tout autoriser') ||
+                            btnText.includes('je suis d\'accord') ||
+                            btnText.includes('d\'accord');
+
+                        if (isAcceptButton) {
+                            btn.click();
+                            console.log('✅ Bouton de cookies cliqué :', selector);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        // Essayer de cliquer sur un bouton de cookies
+        if (clickCookieButton()) {
+            // Attendre 1 seconde puis réessayer l'initialisation
+            setTimeout(() => {
+                if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
+                    tinyMCE.editors.forEach(setupEditor);
+                } else {
+                    setTimeout(init, 1000);
+                }
+            }, 1000);
+            return true;
+        }
+        return false;
+    }
+
     function init() {
+        // D'abord, essayer d'accepter les cookies automatiquement
+        if (autoAcceptCookies()) {
+            return; // On attend le callback dans autoAcceptCookies
+        }
+
+        // Sinon, vérifier si TinyMCE est déjà chargé
         if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
             tinyMCE.editors.forEach(setupEditor);
         } else {
@@ -771,4 +858,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
     } else {
         init();
     }
+
+    // Vérifier périodiquement les popups de cookies (toutes les 2 secondes)
+    setInterval(autoAcceptCookies, 2000);
 })();
