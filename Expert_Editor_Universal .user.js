@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4
 // @namespace    https://github.com/Steven17200
-// @version      6.0.1
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code
+// @version      6.0.2
+// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -394,6 +394,36 @@
             ed.focus();
             ed.execCommand('mceInsertTable');
         }));
+        
+        // --- TABLEAU GRIS POUR PUBLICATION (avec surlignage coloré) ---
+        toolbar.appendChild(create('btn-table-gris', 'Tableau Gris', () => {
+            ed.focus();
+            // Insérer un tableau 3x3 avec fond gris et bordures
+            const tableHtml = `
+                <table style="width: 100%; border-collapse: collapse; margin: 10px 0; background-color: #e0e0e0; color: #000000; border: 1px solid #888;">
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 1</td>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 2</td>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 3</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 4</td>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #ffff00; color: #000;">Surlignée</td>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 6</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 7</td>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 8</td>
+                            <td style="border: 1px solid #888; padding: 8px; background-color: #e0e0e0; color: #000;">Cellule 9</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><br></p>
+            `;
+            ed.execCommand('mceInsertContent', false, tableHtml);
+            alert("✅ Tableau gris inséré ! Utilisez le sélecteur 'Fond Case' pour changer la couleur de surlignage.");
+        }));
         // --- CARACTÈRES SPÉCIAUX ---
         toolbar.appendChild(create('btn-arrow-right', '→', () => {
              ed.execCommand('mceInsertContent', false, '→');
@@ -670,7 +700,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
     ed.focus();
     ed.execCommand('mceInsertContent', false, videoHtml);
 }));
-        // --- 8. PUBLICATION HTML (Nouveau bouton pour insérer un cadre HTML) ---
+        // --- 8. PUBLICATION HTML (Nouveau bouton pour insérer un cadre HTML avec fond gris et surlignage coloré) ---
         toolbar.appendChild(create('btn-html-frame', '📰 Publication HTML', () => {
             const htmlContent = prompt("Collez votre code HTML pour la publication :", "<p>Votre contenu ici...</p>");
             if (!htmlContent) return;
@@ -681,17 +711,18 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
                 .replace(/javascript:/gi, '') // Supprimer les appels javascript
                 .replace(/on\w+="[^"]*"/g, ''); // Supprimer les attributs on* (onclick, onerror, etc.)
 
-            // Créer un cadre stylisé pour la publication HTML
+            // Créer un cadre stylisé pour la publication HTML avec fond gris et texte noir
             const frameHtml = `
                 <div style="
-                    border: 2px solid #4a90e2;
+                    border: 2px solid #888;
                     border-radius: 8px;
                     padding: 15px;
                     margin: 15px 0;
-                    background-color: #f9f9f9;
+                    background-color: #e0e0e0;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                     max-width: 100%;
                     overflow: hidden;
+                    color: #000000;
                 ">
                     ${cleanHtml}
                 </div>
@@ -700,7 +731,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
 
             ed.focus();
             ed.execCommand('mceInsertContent', false, frameHtml);
-            alert("✅ Publication HTML insérée avec succès !");
+            alert("✅ Publication HTML insérée avec fond gris et texte noir ! Utilisez le surligneur pour égayer.");
         }));
 
         // --- 10. LOGOS TV (TOUS CONSERVÉS) ---
