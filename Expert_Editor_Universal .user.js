@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4
 // @namespace    https://github.com/Steven17200
-// @version      6.0.3
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML + Dimensions et cadre pour les images
+// @version      6.0.4
+// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML + Dimensions, cadre et lien cliquable pour les images
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -460,6 +460,14 @@
             const borderWidth = prompt("Épaisseur du cadre (en pixels, ex: 2) :", "0");
             const borderColor = prompt("Couleur du cadre (ex: #000000 ou red) :", "#000000");
 
+            // Demander si l'image doit être cliquable
+            const addLink = confirm("Voulez-vous que l'image soit cliquable ?");
+            let linkUrl = null;
+            if (addLink) {
+                linkUrl = prompt("URL du lien (ex: https://example.com) :");
+                if (!linkUrl) return;
+            }
+
             // Construire le style CSS
             let style = `max-width:100%;`;
             if (width) style += `width:${width};`;
@@ -468,8 +476,16 @@
                 style += `border:${borderWidth}px solid ${borderColor};`;
             }
 
-            // Insérer l'image avec les styles
-            ed.execCommand('mceInsertContent', false, `<img src="${url}" style="${style}">`);
+            // Construire le HTML final
+            let imgHtml = `<img src="${url}" style="${style}">`;
+            if (linkUrl) {
+                const openInNewTab = confirm("Ouvrir le lien dans un nouvel onglet ?");
+                const target = openInNewTab ? ' target="_blank"' : '';
+                imgHtml = `<a href="${linkUrl}"${target}>${imgHtml}</a>`;
+            }
+
+            // Insérer l'image (ou le lien + image)
+            ed.execCommand('mceInsertContent', false, imgHtml);
         }));
         toolbar.appendChild(create('btn-emoji', '😀', () => {
             const emoji = prompt("Emoji :");
