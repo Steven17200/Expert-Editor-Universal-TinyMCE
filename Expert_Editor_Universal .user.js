@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4
 // @namespace    https://github.com/Steven17200
-// @version      6.0.2
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML
+// @version      6.0.3
+// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML + Dimensions et cadre pour les images
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://*/*
@@ -449,8 +449,27 @@
             if (url) ed.execCommand('mceInsertLink', false, url);
         }));
         toolbar.appendChild(create('btn-image', '🖼️', () => {
-            const url = prompt("Image URL :");
-            if (url) ed.execCommand('mceInsertContent', false, `<img src="${url}" style="max-width:100%;height:auto;">`);
+            const url = prompt("URL de l'image :");
+            if (!url) return;
+
+            // Demander les dimensions (largeur/hauteur)
+            const width = prompt("Largeur (ex: 300px ou 50%) :", "100%");
+            const height = prompt("Hauteur (ex: 200px ou auto) :", "auto");
+
+            // Demander le cadre (border)
+            const borderWidth = prompt("Épaisseur du cadre (en pixels, ex: 2) :", "0");
+            const borderColor = prompt("Couleur du cadre (ex: #000000 ou red) :", "#000000");
+
+            // Construire le style CSS
+            let style = `max-width:100%;`;
+            if (width) style += `width:${width};`;
+            if (height) style += `height:${height};`;
+            if (borderWidth && borderWidth !== "0") {
+                style += `border:${borderWidth}px solid ${borderColor};`;
+            }
+
+            // Insérer l'image avec les styles
+            ed.execCommand('mceInsertContent', false, `<img src="${url}" style="${style}">`);
         }));
         toolbar.appendChild(create('btn-emoji', '😀', () => {
             const emoji = prompt("Emoji :");
