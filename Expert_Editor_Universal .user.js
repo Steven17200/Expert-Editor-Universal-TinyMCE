@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4
 // @namespace    https://github.com/Steven17200
-// @version      6.0.4
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML + Dimensions, cadre et lien cliquable pour les images
+// @version      6.0.5
+// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML + Dimensions, cadre et lien cliquable pour les images + Flow Music
 // @author       Steven17200
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
-// @match        *://*/*
+// @match        *://www.universfreebox.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
@@ -687,6 +687,42 @@ toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
 
     alert("YouTube Music inséré avec autoplay. Le son démarre souvent après un clic (règles navigateur).");
 }));
+
+// --- Flow Music (lecteur audio) ---
+toolbar.appendChild(create('btn-flow-music', '🎶 Flow Music', () => {
+    const url = prompt("Lien Flow Music (ex: https://www.flowmusic.app/song/f25d46e2-e58e-4e5f-a0a4-ab209126dadc) :");
+    if (!url) return;
+
+    // Extraire l'ID de la chanson depuis l'URL
+    const idMatch = url.match(/(?:song\/|\/song\/)([a-f0-9-]{36})/i);
+    const songId = idMatch ? idMatch[1] : null;
+    
+    if (!songId) {
+        alert("❌ ID de chanson non détecté. Vérifie le lien.");
+        return;
+    }
+
+    // Demander la taille du lecteur
+    const width = prompt("Largeur (pixels ou %) :", "100%");
+    const height = prompt("Hauteur (pixels, ex: 120px) :", "120px");
+
+    // Générer l'iframe vers Flow Music
+    ed.focus();
+    ed.execCommand('mceInsertContent', false,
+        `<div style="display:flex;justify-content:center;margin:15px 0;">
+            <iframe
+                src="https://www.flowmusic.app/song/${songId}"
+                width="${width}"
+                height="${height}"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                style="border-radius:8px; background:#fff; border:1px solid #ddd; max-width:100%;">
+            </iframe>
+        </div><p></p>`
+    );
+
+    alert(`✅ Flow Music inséré (${width} × ${height}). L'utilisateur devra cliquer sur le bouton Play.`);
+}));
         toolbar.appendChild(create('btn-vimeo', '📹 Vimeo', () => {
             const url = prompt("Lien Vimeo :");
             const id = url ? url.match(/(?:vimeo\.com\/|video\/)(\d+)/)?.[1] : null;
@@ -798,6 +834,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
             { name: "Pluto TV", url: "https://i.postimg.cc/18tstbvR/Pluto-TV-2020-logo.png" },
             { name: "Cafeyn", url: "https://i.postimg.cc/Dm5yR0gN/20250520062620-Cafeyn-logo-svg.png" },
             { name: "ByCanal", url: "https://i.postimg.cc/w3FTnMVZ/By-Canal.png" },
+            { name: "FamilleByCanal", url: "https://i.postimg.cc/mrRYD6Nj/Famille-By-Canal.png" },
             { name: "Disney+", url: "https://i.postimg.cc/SjVNHRr5/Dinsey.png" },
             { name: "Universal+", url: "https://i.postimg.cc/K4QvCjNd/Universal.png" },
             { name: "Orange Telecom", url: "https://i.postimg.cc/qvngQm8F/Orange.webp" },
