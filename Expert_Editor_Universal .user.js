@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Expert Editor Universal V4
+// @name         Expert Editor Universal V4 + Footer dans le contenu
 // @namespace    https://github.com/Steven17200
-// @version      6.0.5
-// @description  Clé Mistral sécurisée + Clé IA en premier + Tableau + Odysee avec taille + Palettes couleurs texte/surlignage/FOND CASE + Code + Tableau Gris Publication HTML + Dimensions, cadre et lien cliquable pour les images + Flow Music
-// @author       Steven17200
+// @version      6.0.7
+// @description  Clé Mistral sécurisée + Clé IA + Tableau + Odysee + Palettes couleurs + Code + Footer intégré dans le contenu
+// @author       Steven17200 (Modifié par Stéphane)
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://www.universfreebox.com/*
 // @grant        GM_getValue
@@ -37,9 +37,7 @@
                 MISTRAL_API_KEY = null;
             }
         })
-        .catch(() => {
-            // Erreur réseau ou autre
-        });
+        .catch(() => {});
     }
 
     function getOrAskKey() {
@@ -134,61 +132,74 @@
     `;
     document.head.appendChild(styleFix);
 
+    // --- FONCTION POUR INSÉRER UN FOOTER DANS LE CONTENU (TinyMCE) ---
+    function insertCustomFooterInContent(ed, downSpeed, upSpeed) {
+        const footerHtml = `
+            <div style="
+                background: #e0e0e0;
+                color: #000;
+                padding: 8px 16px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+                border-radius: 4px;
+                margin: 10px 0;
+                border: 1px solid #888;
+                width: fit-content;
+            ">
+                <span>📶 <strong>Freebox Delta</strong></span>
+                <span style="color: #4CAF50;">↓ <strong>${downSpeed}</strong></span>
+                <span style="color: #2196F3;">↑ <strong>${upSpeed}</strong></span>
+                <button onclick="alert('Historique des tests (à implémenter)')" style="
+                    background: #444;
+                    color: #fff;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                ">📊 Historique</button>
+                <button onclick="window.open('https://www.universfreebox.com/test-de-debit', '_blank')" style="
+                    background: #f44336;
+                    color: #fff;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                ">⚡ Tester son débit</button>
+            </div>
+        `;
+        ed.focus();
+        ed.execCommand('mceInsertContent', false, footerHtml);
+    }
+
     function autoAcceptCookies() {
-        // Liste des sélecteurs courants pour les boutons d'acceptation des cookies
         const cookieSelectors = [
-            // Sélecteurs génériques
-            'button[aria-label*="accept" i]',
-            'button[aria-label*="cookie" i]',
-            'button[id*="cookie" i]',
-            'button[id*="accept" i]',
-            'button[class*="cookie" i]',
-            'button[class*="accept" i]',
-            'button[class*="consent" i]',
-            'button[class*="agree" i]',
-            // Sélecteurs spécifiques à certains sites
-            '#cookie-accept',
-            '#cookie-consent-accept',
-            '#accept-cookies',
-            '#acceptAllCookies',
-            '#cookie-ok',
-            '#cookie-button',
-            '.cookie-consent button',
-            '.cookie-banner button',
-            '.cookie-modal button',
-            '.cookie-popup button',
-            '.cookie-accept',
-            '.cookie-accept-all',
-            '.cookie-agree',
-            '.cookie-ok',
-            '.cookie-yes',
-            '.cookie-allow',
-            // Sélecteurs pour les modales (ex: Shadow DOM)
-            'div[role="dialog"] button',
-            'div[role="alertdialog"] button',
-            // Sélecteurs pour les iframes (ex: Google Consent)
-            'iframe[src*="consent"]',
-            'iframe[src*="cookie"]'
+            'button[aria-label*="accept" i]', 'button[aria-label*="cookie" i]',
+            'button[id*="cookie" i]', 'button[id*="accept" i]', 'button[class*="cookie" i]',
+            'button[class*="accept" i]', 'button[class*="consent" i]', 'button[class*="agree" i]',
+            '#cookie-accept', '#cookie-consent-accept', '#accept-cookies', '#acceptAllCookies',
+            '#cookie-ok', '#cookie-button', '.cookie-consent button', '.cookie-banner button',
+            '.cookie-modal button', '.cookie-popup button', '.cookie-accept', '.cookie-accept-all',
+            '.cookie-agree', '.cookie-ok', '.cookie-yes', '.cookie-allow', 'div[role="dialog"] button',
+            'div[role="alertdialog"] button', 'iframe[src*="consent"]', 'iframe[src*="cookie"]'
         ];
 
-        // Fonction pour cliquer sur un bouton si trouvé
         const clickCookieButton = () => {
             for (const selector of cookieSelectors) {
                 const buttons = document.querySelectorAll(selector);
                 for (const btn of buttons) {
-                    if (btn.offsetParent !== null) { // Vérifie que le bouton est visible
+                    if (btn.offsetParent !== null) {
                         const btnText = (btn.textContent || btn.innerText || '').toLowerCase();
-                        const isAcceptButton = 
-                            btnText.includes('accept') ||
-                            btnText.includes('ok') ||
-                            btnText.includes('agree') ||
-                            btnText.includes('allow') ||
-                            btnText.includes('consent') ||
-                            btnText.includes('tout accepter') ||
-                            btnText.includes('tout autoriser') ||
-                            btnText.includes('je suis d\'accord') ||
+                        const isAcceptButton =
+                            btnText.includes('accept') || btnText.includes('ok') ||
+                            btnText.includes('agree') || btnText.includes('allow') ||
+                            btnText.includes('consent') || btnText.includes('tout accepter') ||
+                            btnText.includes('tout autoriser') || btnText.includes('je suis d\'accord') ||
                             btnText.includes('d\'accord');
-
                         if (isAcceptButton) {
                             btn.click();
                             console.log('✅ Bouton de cookies cliqué :', selector);
@@ -200,9 +211,7 @@
             return false;
         };
 
-        // Essayer de cliquer sur un bouton de cookies
         if (clickCookieButton()) {
-            // Attendre 1 seconde puis réessayer l'initialisation
             setTimeout(() => {
                 if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
                     tinyMCE.editors.forEach(setupEditor);
@@ -216,12 +225,7 @@
     }
 
     function init() {
-        // D'abord, essayer d'accepter les cookies automatiquement
-        if (autoAcceptCookies()) {
-            return; // On attend le callback dans autoAcceptCookies
-        }
-
-        // Sinon, vérifier si TinyMCE est déjà chargé
+        if (autoAcceptCookies()) return;
         if (typeof tinyMCE !== 'undefined' && tinyMCE.editors && tinyMCE.editors.length > 0) {
             tinyMCE.editors.forEach(setupEditor);
         } else {
@@ -336,10 +340,10 @@
             ed.execCommand('FontName', false, e.target.value);
         };
         toolbar.appendChild(fontSelect);
-        // --- 5. CARACTÈRES SPÉCIAUX & SYMBOLES ---
+
+        // --- 5. CARACTÈRES SPÉCIAUX ---
         const charSelect = document.createElement('select');
         charSelect.style = "padding:3px;border:1px solid #ccc;border-radius:3px;font-size:12px;max-width:120px;margin-left:5px;";
-
         const chars = [
             {n:'Insertion...', v:''},
             {n:'-- MAJUSCULES ACCENTUÉES --', v:''},
@@ -357,26 +361,22 @@
             {n:'🍿 (Pop-corn)', v:'🍿'},
             {n:'⭐ (Étoile)', v:'⭐'}
         ];
-
         chars.forEach(c => {
             const o = document.createElement('option');
             o.value = c.v; o.textContent = c.n;
             if (c.n.startsWith('--')) o.disabled = true;
             charSelect.appendChild(o);
         });
-
         charSelect.onchange = (e) => {
             if (e.target.value !== '') {
                 ed.focus();
-                // Insère le caractère directement à la position du curseur
                 ed.execCommand('insertHTML', false, e.target.value);
-                // Réinitialise le menu sur "Insertion..." pour pouvoir ré-utiliser le même caractère
                 charSelect.selectedIndex = 0;
             }
         };
-
         toolbar.appendChild(charSelect);
-        // --- 5. ÉDITION CLASSIQUE ---
+
+        // --- 6. ÉDITION CLASSIQUE ---
         toolbar.appendChild(create('btn-bold', 'B', () => ed.execCommand('Bold')));
         toolbar.appendChild(create('btn-italic', 'I', () => ed.execCommand('Italic')));
         toolbar.appendChild(create('btn-underline', 'U', () => ed.execCommand('Underline')));
@@ -389,16 +389,14 @@
         toolbar.appendChild(create('btn-align-center', '↔', () => ed.execCommand('JustifyCenter')));
         toolbar.appendChild(create('btn-align-right', '→', () => ed.execCommand('JustifyRight')));
 
-        // --- 6. TABLEAU ---
+        // --- 7. TABLEAUX ---
         toolbar.appendChild(create('btn-table', 'Tableau', () => {
             ed.focus();
             ed.execCommand('mceInsertTable');
         }));
-        
-        // --- TABLEAU GRIS POUR PUBLICATION (avec surlignage coloré) ---
+
         toolbar.appendChild(create('btn-table-gris', 'Tableau Gris', () => {
             ed.focus();
-            // Insérer un tableau 3x3 avec fond gris et bordures
             const tableHtml = `
                 <table style="width: 100%; border-collapse: collapse; margin: 10px 0; background-color: #e0e0e0; color: #000000; border: 1px solid #888;">
                     <tbody>
@@ -424,365 +422,296 @@
             ed.execCommand('mceInsertContent', false, tableHtml);
             alert("✅ Tableau gris inséré ! Utilisez le sélecteur 'Fond Case' pour changer la couleur de surlignage.");
         }));
-        // --- CARACTÈRES SPÉCIAUX ---
-        toolbar.appendChild(create('btn-arrow-right', '→', () => {
-             ed.execCommand('mceInsertContent', false, '→');
-        }));
-        toolbar.appendChild(create('btn-arrow-left', '←', () => {
-             ed.execCommand('mceInsertContent', false, '←');
-        }));
-        toolbar.appendChild(create('btn-double-angle-right', '»', () => {
-             ed.execCommand('mceInsertContent', false, '»');
-        }));
-        toolbar.appendChild(create('btn-double-angle-left', '«', () => {
-             ed.execCommand('mceInsertContent', false, '«');
-        }));
-        // AJOUT BOUTON ZONE DE CODE
+
+        // --- 8. CARACTÈRES SPÉCIAUX (FLÈCHES) ---
+        toolbar.appendChild(create('btn-arrow-right', '→', () => ed.execCommand('mceInsertContent', false, '→')));
+        toolbar.appendChild(create('btn-arrow-left', '←', () => ed.execCommand('mceInsertContent', false, '←')));
+        toolbar.appendChild(create('btn-double-angle-right', '»', () => ed.execCommand('mceInsertContent', false, '»')));
+        toolbar.appendChild(create('btn-double-angle-left', '«', () => ed.execCommand('mceInsertContent', false, '«')));
+
+        // --- 9. ZONE DE CODE ---
         toolbar.appendChild(create('btn-code-zone', '💻 Code', () => {
             ed.focus();
             const codeHtml = `<pre style="background-color: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.5; overflow-x: auto; border: 1px solid #333; margin: 10px 0;"><code>// Votre code ici...</code></pre><p><br></p>`;
             ed.execCommand('mceInsertContent', false, codeHtml);
         }));
 
+        // --- 10. LIENS & IMAGES ---
         toolbar.appendChild(create('btn-link', '🔗', () => {
             const url = prompt("Lien :");
             if (url) ed.execCommand('mceInsertLink', false, url);
         }));
+
         toolbar.appendChild(create('btn-image', '🖼️', () => {
             const url = prompt("URL de l'image :");
             if (!url) return;
-
-            // Demander les dimensions (largeur/hauteur)
             const width = prompt("Largeur (ex: 300px ou 50%) :", "100%");
             const height = prompt("Hauteur (ex: 200px ou auto) :", "auto");
-
-            // Demander le cadre (border)
             const borderWidth = prompt("Épaisseur du cadre (en pixels, ex: 2) :", "0");
             const borderColor = prompt("Couleur du cadre (ex: #000000 ou red) :", "#000000");
-
-            // Demander si l'image doit être cliquable
             const addLink = confirm("Voulez-vous que l'image soit cliquable ?");
             let linkUrl = null;
             if (addLink) {
                 linkUrl = prompt("URL du lien (ex: https://example.com) :");
                 if (!linkUrl) return;
             }
-
-            // Construire le style CSS
             let style = `max-width:100%;`;
             if (width) style += `width:${width};`;
             if (height) style += `height:${height};`;
             if (borderWidth && borderWidth !== "0") {
                 style += `border:${borderWidth}px solid ${borderColor};`;
             }
-
-            // Construire le HTML final
             let imgHtml = `<img src="${url}" style="${style}">`;
             if (linkUrl) {
                 const openInNewTab = confirm("Ouvrir le lien dans un nouvel onglet ?");
                 const target = openInNewTab ? ' target="_blank"' : '';
                 imgHtml = `<a href="${linkUrl}"${target}>${imgHtml}</a>`;
             }
-
-            // Insérer l'image (ou le lien + image)
             ed.execCommand('mceInsertContent', false, imgHtml);
         }));
-        toolbar.appendChild(create('btn-emoji', '😀', () => {
-            const emoji = prompt("Emoji :");
-            if (emoji) ed.execCommand('mceInsertContent', false, emoji);
+
+        // --- 11. MÉDIAS ---
+        toolbar.appendChild(create('btn-speedtest', '📊 Speedtest', () => {
+            const url = prompt("Colle le lien Speedtest (ex: https://www.speedtest.net/result/a/11591345182) :");
+            if (!url) return;
+            const idMatch = url.match(/(?:result\/a\/|result\/)([a-zA-Z0-9]+)/);
+            const id = idMatch ? idMatch[1] : null;
+            if (!id) {
+                alert("❌ ID non détecté. Vérifie le lien.");
+                return;
+            }
+            const imageUrl = `https://www.speedtest.net/result/a/${id}.png`;
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="display:flex;justify-content:center;margin:15px 0;">
+                    <img src="${imageUrl}"
+                         style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                </div><p></p>`
+            );
+            alert("✅ Speedtest inséré (image PNG).");
         }));
 
-// --- 7. MÉDIAS ---
-// --- Speedtest (image PNG) ---
-toolbar.appendChild(create('btn-speedtest', '📊 Speedtest', () => {
-    const url = prompt("Colle le lien Speedtest (ex: https://www.speedtest.net/result/a/11591345182) :");
-    if (!url) return;
+        toolbar.appendChild(create('btn-embed-webpage', '🌐 Page Web', () => {
+            const url = prompt("URL de la page à intégrer (ex: https://boutique.canalplus.com/) :");
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert("❌ L'URL doit commencer par http:// ou https://");
+                return;
+            }
+            const width = prompt("Largeur (pixels ou %) :", "100%");
+            if (!width) return;
+            const height = prompt("Hauteur (pixels, ex: 500px) :", "500px");
+            if (!height) return;
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="display:flex;justify-content:center;margin:15px 0;">
+                    <iframe
+                        src="${url}"
+                        width="${width}"
+                        height="${height}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        style="border-radius:8px; background:#fff; border:1px solid #ddd; max-width:100%;">
+                    </iframe>
+                </div><p></p>`
+            );
+            alert(`✅ Page intégrée (${width} × ${height}).`);
+        }));
 
-    // Extraction de l'ID (supporte les formats : /result/a/ID ou /result/ID)
-    const idMatch = url.match(/(?:result\/a\/|result\/)([a-zA-Z0-9]+)/);
-    const id = idMatch ? idMatch[1] : null;
-    if (!id) {
-        alert("❌ ID non détecté. Vérifie le lien.");
-        return;
-    }
+        toolbar.appendChild(create('btn-yt-video', '📺 YouTube', () => {
+            const url = prompt("Lien YouTube (ou juste l'ID) :");
+            if (!url) return;
+            const idMatch = url.match(/(?:v=|\/|shorts\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
+            const id = idMatch ? idMatch[1] : null;
+            if (!id) { alert("ID YouTube non détecté."); return; }
+            const largeurStr = prompt("Largeur (pixels) ?", "560");
+            let width = parseInt(largeurStr, 10) || 560;
+            const hauteurStr = prompt("Hauteur (pixels) ?", "315");
+            let height = parseInt(hauteurStr, 10) || 315;
+            const autoPlayChoix = prompt("Autoplay ? (1 = oui / 0 = non)", "1");
+            const autoplay = (autoPlayChoix === "1") ? "1" : "0";
+            const iframeSrc = `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=0&loop=1&playlist=${id}&enablejsapi=1`;
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="display:flex;justify-content:center;margin:15px 0;">
+                    <iframe
+                        width="${width}"
+                        height="${height}"
+                        src="${iframeSrc}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        style="border-radius:12px;background:#000;"
+                        allowfullscreen>
+                    </iframe>
+                </div><p></p>`
+            );
+            const status = (autoplay === "1") ? "avec autoplay" : "sans autoplay";
+            alert(`YouTube inséré (${width}×${height}) ${status}. Le son peut demander un clic selon le navigateur.`);
+        }));
 
-    // URL de l'image générée par Speedtest
-    const imageUrl = `https://www.speedtest.net/result/a/${id}.png`;
+        toolbar.appendChild(create('btn-x-video', '𝕏 Vidéo', () => {
+            const url = prompt("Lien X complet ou ID du post :");
+            if (!url) return;
+            let postId = null;
+            const idMatch = url.match(/\/status\/(\d+)/);
+            if (idMatch) postId = idMatch[1];
+            else if (/^\d{15,20}$/.test(url.trim())) postId = url.trim();
+            if (!postId) {
+                alert("ID non détecté. Exemple : https://x.com/user/status/1234567890123456789");
+                return;
+            }
+            const choix = prompt("Choisis :\n1 = iframe direct (hauteur auto)\n2 = hauteur manuelle\n3 = iframe + essayer autoplay", "1");
+            let xHtml = '';
+            if (choix === "1") {
+                xHtml = `
+                    <div style="display:flex;justify-content:center;margin:15px 0;">
+                        <iframe
+                            src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
+                            width="560"
+                            height="auto"
+                            frameborder="0"
+                            scrolling="no"
+                            style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; min-height:500px; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
+                        </iframe>
+                    </div><p></p>`;
+            }
+            else if (choix === "2") {
+                const largeurStr = prompt("Largeur pixels ?", "560");
+                let width = parseInt(largeurStr, 10) || 560;
+                const hauteurStr = prompt("Hauteur pixels ? (600-900 pour vidéo)", "700");
+                let height = parseInt(hauteurStr, 10) || 700;
+                xHtml = `
+                    <div style="display:flex;justify-content:center;margin:15px 0;">
+                        <iframe
+                            src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
+                            width="${width}"
+                            height="${height}"
+                            frameborder="0"
+                            scrolling="no"
+                            style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
+                        </iframe>
+                    </div><p></p>`;
+            }
+            else {
+                const largeurStr = prompt("Largeur pixels ?", "560");
+                let width = parseInt(largeurStr, 10) || 560;
+                const hauteurStr = prompt("Hauteur pixels ?", "700");
+                let height = parseInt(hauteurStr, 10) || 700;
+                xHtml = `
+                    <div style="display:flex;justify-content:center;margin:15px 0;">
+                        <iframe
+                            src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
+                            width="${width}"
+                            height="${height}"
+                            frameborder="0"
+                            scrolling="no"
+                            allow="autoplay; encrypted-media"
+                            style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
+                        </iframe>
+                    </div><p></p>`;
+            }
+            ed.focus();
+            ed.execCommand('mceInsertContent', false, xHtml);
+            alert("Post X inséré sans barre de défilement (version renforcée).");
+        }));
 
-    ed.focus();
-    ed.execCommand('mceInsertContent', false,
-        `<div style="display:flex;justify-content:center;margin:15px 0;">
-            <img src="${imageUrl}"
-                 style="max-width:100%; height:auto; border:1px solid #ddd; border-radius:8px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-        </div><p></p>`
-    );
-    alert("✅ Speedtest inséré (image PNG).");
-}));
-        // --- Intégrer une page web (iframe) ---
-toolbar.appendChild(create('btn-embed-webpage', '🌐 Page Web', () => {
-    const url = prompt("URL de la page à intégrer (ex: https://boutique.canalplus.com/) :");
-    if (!url) return;
+        toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
+            const url = prompt("Lien YouTube Music :");
+            if (!url) return;
+            const match = url.match(/(?:v=|youtu\.be\/|\/embed\/|music\.youtube\.com\/watch\?v=|\/watch\?v=)([\w-]{11})/i);
+            const id = match ? match[1] : null;
+            if (!id) { alert("Lien invalide !"); return; }
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="margin:10px 0;">
+                    <iframe width="100%" height="80"
+                        src="https://www.youtube.com/embed/${id}?autoplay=1&controls=1&rel=0"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        style="border-radius:8px;background:#000;">
+                    </iframe>
+                </div><p></p>`
+            );
+            alert("YouTube Music inséré avec autoplay. Le son démarre souvent après un clic (règles navigateur).");
+        }));
 
-    // Vérification basique de l'URL (doit commencer par http:// ou https://)
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        alert("❌ L'URL doit commencer par http:// ou https://");
-        return;
-    }
+        toolbar.appendChild(create('btn-flow-music', '🎶 Flow Music', () => {
+            const url = prompt("Lien Flow Music (ex: https://www.flowmusic.app/song/f25d46e2-e58e-4e5f-a0a4-ab209126dadc) :");
+            if (!url) return;
+            const idMatch = url.match(/(?:song\/|\/song\/)([a-f0-9-]{36})/i);
+            const songId = idMatch ? idMatch[1] : null;
+            if (!songId) {
+                alert("❌ ID de chanson non détecté. Vérifie le lien.");
+                return;
+            }
+            const width = prompt("Largeur (pixels ou %) :", "100%");
+            const height = prompt("Hauteur (pixels, ex: 120px) :", "120px");
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="display:flex;justify-content:center;margin:15px 0;">
+                    <iframe
+                        src="https://www.flowmusic.app/song/${songId}"
+                        width="${width}"
+                        height="${height}"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
+                        style="border-radius:8px; background:#fff; border:1px solid #ddd; max-width:100%;">
+                    </iframe>
+                </div><p></p>`
+            );
+            alert(`✅ Flow Music inséré (${width} × ${height}). L'utilisateur devra cliquer sur le bouton Play.`);
+        }));
 
-    const width = prompt("Largeur (pixels ou %) :", "100%");
-    if (!width) return;
-
-    const height = prompt("Hauteur (pixels, ex: 500px) :", "500px");
-    if (!height) return;
-
-    ed.focus();
-    ed.execCommand('mceInsertContent', false,
-        `<div style="display:flex;justify-content:center;margin:15px 0;">
-            <iframe
-                src="${url}"
-                width="${width}"
-                height="${height}"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-                style="border-radius:8px; background:#fff; border:1px solid #ddd; max-width:100%;">
-            </iframe>
-        </div><p></p>`
-    );
-    alert(`✅ Page intégrée (${width} × ${height}).`);
-}));
-// YouTube avec hauteur libre + choix autoplay
-toolbar.appendChild(create('btn-yt-video', '📺 YouTube', () => {
-    const url = prompt("Lien YouTube (ou juste l'ID) :");
-    if (!url) return;
-
-    const idMatch = url.match(/(?:v=|\/|shorts\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
-    const id = idMatch ? idMatch[1] : null;
-    if (!id) { alert("ID YouTube non détecté."); return; }
-
-    const largeurStr = prompt("Largeur (pixels) ?", "560");
-    let width = parseInt(largeurStr, 10) || 560;
-
-    const hauteurStr = prompt("Hauteur (pixels) ?", "315");
-    let height = parseInt(hauteurStr, 10) || 315;
-
-    const autoPlayChoix = prompt("Autoplay ? (1 = oui / 0 = non)", "1");
-    const autoplay = (autoPlayChoix === "1") ? "1" : "0";
-
-    const iframeSrc = `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=0&loop=1&playlist=${id}&enablejsapi=1`;
-
-    ed.focus();
-    ed.execCommand('mceInsertContent', false,
-        `<div style="display:flex;justify-content:center;margin:15px 0;">
-            <iframe
-                width="${width}"
-                height="${height}"
-                src="${iframeSrc}"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                style="border-radius:12px;background:#000;"
-                allowfullscreen>
-            </iframe>
-        </div><p></p>`
-    );
-
-    const status = (autoplay === "1") ? "avec autoplay" : "sans autoplay";
-    alert(`YouTube inséré (${width}×${height}) ${status}. Le son peut demander un clic selon le navigateur.`);
-}));
-// --- X (Twitter) VIDÉO - sans barre de défilement vertical (version renforcée) ---
-toolbar.appendChild(create('btn-x-video', '𝕏 Vidéo', () => {
-    const url = prompt("Lien X complet ou ID du post :");
-    if (!url) return;
-
-    let postId = null;
-    const idMatch = url.match(/\/status\/(\d+)/);
-    if (idMatch) postId = idMatch[1];
-    else if (/^\d{15,20}$/.test(url.trim())) postId = url.trim();
-
-    if (!postId) {
-        alert("ID non détecté. Exemple : https://x.com/user/status/1234567890123456789");
-        return;
-    }
-
-    const choix = prompt("Choisis :\n1 = iframe direct (hauteur auto)\n2 = hauteur manuelle\n3 = iframe + essayer autoplay", "1");
-
-    let xHtml = '';
-
-    if (choix === "1") {
-        xHtml = `
-            <div style="display:flex;justify-content:center;margin:15px 0;">
-                <iframe
-                    src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
-                    width="560"
-                    height="auto"
-                    frameborder="0"
-                    scrolling="no"
-                    style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; min-height:500px; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
-                </iframe>
-            </div><p></p>`;
-    }
-    else if (choix === "2") {
-        const largeurStr = prompt("Largeur pixels ?", "560");
-        let width = parseInt(largeurStr, 10) || 560;
-        const hauteurStr = prompt("Hauteur pixels ? (600-900 pour vidéo)", "700");
-        let height = parseInt(hauteurStr, 10) || 700;
-
-        xHtml = `
-            <div style="display:flex;justify-content:center;margin:15px 0;">
-                <iframe
-                    src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
-                    width="${width}"
-                    height="${height}"
-                    frameborder="0"
-                    scrolling="no"
-                    style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
-                </iframe>
-            </div><p></p>`;
-    }
-    else {
-        const largeurStr = prompt("Largeur pixels ?", "560");
-        let width = parseInt(largeurStr, 10) || 560;
-        const hauteurStr = prompt("Hauteur pixels ?", "700");
-        let height = parseInt(hauteurStr, 10) || 700;
-
-        xHtml = `
-            <div style="display:flex;justify-content:center;margin:15px 0;">
-                <iframe
-                    src="https://platform.twitter.com/embed/Tweet.html?id=${postId}&hideCard=false&hideThread=false&theme=light&lang=fr"
-                    width="${width}"
-                    height="${height}"
-                    frameborder="0"
-                    scrolling="no"
-                    allow="autoplay; encrypted-media"
-                    style="border-radius:12px; background:#fff; max-width:100%; border:1px solid #ddd; overflow:hidden !important; scrollbar-width:none !important; -ms-overflow-style:none !important;">
-                </iframe>
-            </div><p></p>`;
-    }
-
-    ed.focus();
-    ed.execCommand('mceInsertContent', false, xHtml);
-    alert("Post X inséré sans barre de défilement (version renforcée).");
-}));
-// --- YouTube Music (player qui démarre) ---
-toolbar.appendChild(create('btn-yt-music', '🎵 Music', () => {
-    const url = prompt("Lien YouTube Music :");
-    if (!url) return;
-
-    const match = url.match(/(?:v=|youtu\.be\/|\/embed\/|music\.youtube\.com\/watch\?v=|\/watch\?v=)([\w-]{11})/i);
-    const id = match ? match[1] : null;
-    if (!id) { alert("Lien invalide !"); return; }
-
-    ed.focus();
-    ed.execCommand('mceInsertContent', false,
-        `<div style="margin:10px 0;">
-            <iframe width="100%" height="80"
-                src="https://www.youtube.com/embed/${id}?autoplay=1&controls=1&rel=0"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-                style="border-radius:8px;background:#000;">
-            </iframe>
-        </div><p></p>`
-    );
-
-    alert("YouTube Music inséré avec autoplay. Le son démarre souvent après un clic (règles navigateur).");
-}));
-
-// --- Flow Music (lecteur audio) ---
-toolbar.appendChild(create('btn-flow-music', '🎶 Flow Music', () => {
-    const url = prompt("Lien Flow Music (ex: https://www.flowmusic.app/song/f25d46e2-e58e-4e5f-a0a4-ab209126dadc) :");
-    if (!url) return;
-
-    // Extraire l'ID de la chanson depuis l'URL
-    const idMatch = url.match(/(?:song\/|\/song\/)([a-f0-9-]{36})/i);
-    const songId = idMatch ? idMatch[1] : null;
-    
-    if (!songId) {
-        alert("❌ ID de chanson non détecté. Vérifie le lien.");
-        return;
-    }
-
-    // Demander la taille du lecteur
-    const width = prompt("Largeur (pixels ou %) :", "100%");
-    const height = prompt("Hauteur (pixels, ex: 120px) :", "120px");
-
-    // Générer l'iframe vers Flow Music
-    ed.focus();
-    ed.execCommand('mceInsertContent', false,
-        `<div style="display:flex;justify-content:center;margin:15px 0;">
-            <iframe
-                src="https://www.flowmusic.app/song/${songId}"
-                width="${width}"
-                height="${height}"
-                frameborder="0"
-                allow="autoplay; encrypted-media"
-                style="border-radius:8px; background:#fff; border:1px solid #ddd; max-width:100%;">
-            </iframe>
-        </div><p></p>`
-    );
-
-    alert(`✅ Flow Music inséré (${width} × ${height}). L'utilisateur devra cliquer sur le bouton Play.`);
-}));
         toolbar.appendChild(create('btn-vimeo', '📹 Vimeo', () => {
             const url = prompt("Lien Vimeo :");
             const id = url ? url.match(/(?:vimeo\.com\/|video\/)(\d+)/)?.[1] : null;
             if(id) ed.execCommand('mceInsertContent', false, `<div style="display:flex;justify-content:center;margin:15px 0;"><iframe src="https://player.vimeo.com/video/${id}" width="560" height="315" frameborder="0" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen style="border-radius:12px;background:#000;"></iframe></div><p></p>`);
         }));
-toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
-    const url = prompt("Lien Odysee (ex: https://odysee.com/@Plex:02/Champs-Élysées:e) :");
-    if (!url) return;
 
-    // Transformer le lien utilisateur en URL d'embedding
-    let embedUrl = url.replace("odysee.com/", "odysee.com/$/embed/");
+        toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
+            const url = prompt("Lien Odysee (ex: https://odysee.com/@Plex:02/Champs-Élysées:e) :");
+            if (!url) return;
+            let embedUrl = url.replace("odysee.com/", "odysee.com/$/embed/");
+            const orientation = prompt("Orientation ? (1: Horizontal, 2: Vertical)", "1") || "1";
+            let w, h, styleW = "";
+            if (orientation === "1") {
+                const taille = prompt("Taille horizontale ? (1: 320, 2: 560, 3: 800, 4: 100%)", "2") || "2";
+                if (taille === "1") { w = "320"; h = "180"; }
+                else if (taille === "2") { w = "560"; h = "315"; }
+                else if (taille === "2") { w = "800"; h = "450"; }
+                else if (taille === "4") { w = "100%"; h = "450"; styleW = "width:100%; max-width:100%;"; }
+            } else {
+                const taille = prompt("Taille verticale ? (1: 180, 2: 315, 3: 450, 4: 100%)", "2") || "2";
+                if (taille === "1") { w = "180"; h = "320"; }
+                else if (taille === "2") { w = "315"; h = "560"; }
+                else if (taille === "3") { w = "450"; h = "800"; }
+                else if (taille === "4") { w = "100%"; h = "80vh"; styleW = "width:100%; max-width:560px;"; }
+            }
+            const videoHtml = `
+                <div style="display:flex;justify-content:center;margin:15px 0;">
+                    <iframe
+                        ${styleW ? 'style="' + styleW + '"' : ''}
+                        width="${w}"
+                        height="${h}"
+                        src="${embedUrl}"
+                        frameborder="0"
+                        allowfullscreen>
+                    </iframe>
+                </div><p></p>`;
+            ed.focus();
+            ed.execCommand('mceInsertContent', false, videoHtml);
+        }));
 
-    // Demander l'orientation
-    const orientation = prompt("Orientation ? (1: Horizontal, 2: Vertical)", "1") || "1";
-    let w, h, styleW = "";
-
-    if (orientation === "1") {
-        // Horizontal (16:9)
-        const taille = prompt("Taille horizontale ? (1: 320, 2: 560, 3: 800, 4: 100%)", "2") || "2";
-        if (taille === "1") { w = "320"; h = "180"; }
-        else if (taille === "2") { w = "560"; h = "315"; }
-        else if (taille === "3") { w = "800"; h = "450"; }
-        else if (taille === "4") { w = "100%"; h = "450"; styleW = "width:100%; max-width:100%;"; }
-    } else {
-        // Vertical (9:16)
-        const taille = prompt("Taille verticale ? (1: 180, 2: 315, 3: 450, 4: 100%)", "2") || "2";
-        if (taille === "1") { w = "180"; h = "320"; }
-        else if (taille === "2") { w = "315"; h = "560"; }
-        else if (taille === "3") { w = "450"; h = "800"; }
-        else if (taille === "4") { w = "100%"; h = "80vh"; styleW = "width:100%; max-width:560px;"; }
-    }
-
-    // Générer le code HTML pour l'iframe
-    const videoHtml = `
-        <div style="display:flex;justify-content:center;margin:15px 0;">
-            <iframe
-                ${styleW ? 'style="' + styleW + '"' : ''}
-                width="${w}"
-                height="${h}"
-                src="${embedUrl}"
-                frameborder="0"
-                allowfullscreen>
-            </iframe>
-        </div><p></p>`;
-
-    ed.focus();
-    ed.execCommand('mceInsertContent', false, videoHtml);
-}));
-        // --- 8. PUBLICATION HTML (Nouveau bouton pour insérer un cadre HTML avec fond gris et surlignage coloré) ---
+        // --- 12. PUBLICATION HTML ---
         toolbar.appendChild(create('btn-html-frame', '📰 Publication HTML', () => {
             const htmlContent = prompt("Collez votre code HTML pour la publication :", "<p>Votre contenu ici...</p>");
             if (!htmlContent) return;
-
-            // Nettoyer le HTML pour éviter les problèmes de sécurité (basique)
             const cleanHtml = htmlContent
-                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Supprimer les balises script
-                .replace(/javascript:/gi, '') // Supprimer les appels javascript
-                .replace(/on\w+="[^"]*"/g, ''); // Supprimer les attributs on* (onclick, onerror, etc.)
-
-            // Créer un cadre stylisé pour la publication HTML avec fond gris et texte noir
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/javascript:/gi, '')
+                .replace(/on\w+="[^"]*"/g, '');
             const frameHtml = `
                 <div style="
                     border: 2px solid #888;
@@ -799,13 +728,12 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
                 </div>
                 <p><br></p>
             `;
-
             ed.focus();
             ed.execCommand('mceInsertContent', false, frameHtml);
             alert("✅ Publication HTML insérée avec fond gris et texte noir ! Utilisez le surligneur pour égayer.");
         }));
 
-        // --- 10. LOGOS TV (TOUS CONSERVÉS) ---
+        // --- 13. LOGOS TV ---
         const logoList = [
             { name: "📺 Logos TV", url: "" },
             { name: "TF1", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
@@ -819,41 +747,17 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
             { name: "HBO", url: "https://i.postimg.cc/YCP7xBhZ/image.png" },
             { name: "Youtube", url: "https://i.postimg.cc/nrRSNqBZ/Logo-Youtube.png" },
             { name: "Free TV", url: "https://i.postimg.cc/FKwcRpXr/Logo%20Free%20tv.png" },
-            { name: "Filmo TV", url: "https://i.postimg.cc/B6g9cYdd/filmo-by-soonor.png" },
             { name: "Apple TV 4K", url: "https://i.postimg.cc/tsz30gJ9/Apple-TV4K.png" },
             { name: "Apple TV+", url: "https://i.postimg.cc/vBKN2YYH/Apple-TV-logo.png" },
             { name: "Apple Music", url: "https://i.postimg.cc/h46B6Trc/Apple-Music-Logo.png" },
             { name: "Google TV", url: "https://i.postimg.cc/CR4GyK5g/Google-TV-logo-svg.png" },
             { name: "Molotov TV", url: "https://i.postimg.cc/K8fm5YBM/Molotov.png" },
             { name: "Prime Video", url: "https://i.postimg.cc/BbBzGjqm/Pirme-video.png" },
-            { name: "VIDAA", url: "https://i.postimg.cc/9r93Y6MT/vidaa.png" },
-            { name: "TIZEN OS", url: "https://i.postimg.cc/vcnRtJBV/Tizen.png" },
-            { name: "BeIn Sport", url: "https://i.postimg.cc/SJ5sp0ZD/bein.webp" },
             { name: "Netflix", url: "https://i.postimg.cc/nXzpzN3F/Netflix-Logomark.png" },
-            { name: "Paramount+", url: "https://i.postimg.cc/ZWR4RXw5/Paramount-logo-svg.png" },
-            { name: "Pluto TV", url: "https://i.postimg.cc/18tstbvR/Pluto-TV-2020-logo.png" },
-            { name: "Cafeyn", url: "https://i.postimg.cc/Dm5yR0gN/20250520062620-Cafeyn-logo-svg.png" },
-            { name: "ByCanal", url: "https://i.postimg.cc/w3FTnMVZ/By-Canal.png" },
-            { name: "FamilleByCanal", url: "https://i.postimg.cc/mrRYD6Nj/Famille-By-Canal.png" },
             { name: "Disney+", url: "https://i.postimg.cc/SjVNHRr5/Dinsey.png" },
-            { name: "Universal+", url: "https://i.postimg.cc/K4QvCjNd/Universal.png" },
-            { name: "Orange Telecom", url: "https://i.postimg.cc/qvngQm8F/Orange.webp" },
-            { name: "Ligue1+", url: "https://i.postimg.cc/HnxMXRqt/Ligue1.webp" },
-            { name: "SFR", url: "https://i.postimg.cc/k2VBXN5X/SFR.png" },
             { name: "Free", url: "https://i.postimg.cc/mh8DYpcv/Free-logo-svg.png" },
             { name: "Free PRO", url: "https://i.postimg.cc/sgS2KrXz/Free-PRO.png" },
             { name: "Free Mobile", url: "https://i.postimg.cc/t72T3vZ0/Logo-free-mobile2022.png" },
-            { name: "Reef", url: "https://i.postimg.cc/Y99Jh0KC/reef.png" },
-            { name: "Bouygue Telecom", url: "https://i.postimg.cc/ZW9CKPqC/Logo-By-Tel-Ent.png" },
-            { name: "Free-Box-Delta", url: "https://i.postimg.cc/0bgcR5yc/Free-Box-Ultra.png" },
-            { name: "PLEX", url: "https://i.postimg.cc/TY6hPCyP/PLEX.png" },
-            { name: "INFUSE", url: "https://i.postimg.cc/fbX6kjSw/Infuse-8.png" },
-            { name: "Spliiit+", url: "https://i.postimg.cc/65fNr43x/Spliiit.png" },
-            { name: "Mistral IA", url: "https://www.3ds.com/assets/invest/2024-06/logo-mistral.png" },
-            { name: "Service", url: "https://i.postimg.cc/9r3J5XQ8/Service.png" },
-            { name: "Prix", url: "https://i.postimg.cc/56cnd92P/Prix.png" },
-            { name: "Fleche verte (OK)", url: "https://i.postimg.cc/Hrp1NRqw/Fleche-verte-(OK).png" },
-            { name: "Croix Rouge (non)", url: "https://i.postimg.cc/871gY92B/Croix-Rouge-(non).png" },
             { name: "BOX DELTA", url: "https://i.postimg.cc/VJGyQBL1/freebox-delta-1200x1200.png" },
             { name: "BOX ULTRA", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" }
         ];
@@ -875,9 +779,7 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         };
         toolbar.appendChild(logoSel);
 
-        // --- 11. PALETTES COULEURS ---
-
-        // TEXTE
+        // --- 14. PALETTES COULEURS ---
         const textColorLabel = document.createElement('span');
         textColorLabel.textContent = 'Texte : ';
         textColorLabel.style = 'font-size:12px; color:#333; margin-left:8px; margin-right:4px; font-weight:bold;';
@@ -895,7 +797,6 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         };
         toolbar.appendChild(textColorPicker);
 
-        // SUR LIGNAGE (Highlight)
         const highlightLabel = document.createElement('span');
         highlightLabel.textContent = 'Surlign. : ';
         highlightLabel.style = 'font-size:12px; color:#333; margin-left:12px; margin-right:4px; font-weight:bold;';
@@ -913,7 +814,6 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         };
         toolbar.appendChild(highlightPicker);
 
-        // --- NOUVEAUTÉ : FOND CASE TABLEAU (100% Fonctionnel) ---
         const bgCaseLabel = document.createElement('span');
         bgCaseLabel.textContent = 'Fond Case : ';
         bgCaseLabel.style = 'font-size:12px; color:#333; margin-left:12px; margin-right:4px; font-weight:bold;';
@@ -926,30 +826,34 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         bgCasePicker.onchange = (e) => {
             ed.focus();
             const color = e.target.value;
-            // On cherche la cellule parente (td ou th)
             const cell = ed.dom.getParent(ed.selection.getStart(), 'td,th');
             if (cell) {
                 ed.dom.setStyle(cell, 'background-color', color);
                 ed.nodeChanged();
             } else {
-                // Si pas dans un tableau, on applique un fond de bloc classique
                 ed.execCommand('mceApplyTextcolor', 'backcolor', color);
             }
         };
         toolbar.appendChild(bgCasePicker);
 
-        // BOUTON GOMME
         const clearHighlightBtn = create('btn-clear-highlight', '❌', () => {
             ed.focus();
-            // Supprime surlignage texte
             ed.execCommand('HiliteColor', false, 'transparent');
-            // Supprime fond de case si présent
             const cell = ed.dom.getParent(ed.selection.getStart(), 'td,th');
             if (cell) ed.dom.setStyle(cell, 'background-color', '');
             ed.nodeChanged();
         });
         clearHighlightBtn.style = 'margin-left:8px; padding:4px 8px; font-size:14px;';
         toolbar.appendChild(clearHighlightBtn);
+
+        // --- 15. BOUTON FOOTER (INTÉGRÉ DANS LE CONTENU) ---
+        toolbar.appendChild(create('btn-custom-footer', '📊 Footer', () => {
+            const downSpeed = prompt("Débit descendant (ex: 2.38 Gb/s) :", "2.38 Gb/s");
+            if (!downSpeed) return;
+            const upSpeed = prompt("Débit montant (ex: 2.17 Gb/s) :", "2.17 Gb/s");
+            if (!upSpeed) return;
+            insertCustomFooterInContent(ed, downSpeed, upSpeed);
+        }));
 
         // Injection Toolbar
         container.insertBefore(toolbar, container.firstChild);
@@ -962,6 +866,6 @@ toolbar.appendChild(create('btn-odysee', '🚀 Odysee', () => {
         init();
     }
 
-    // Vérifier périodiquement les popups de cookies (toutes les 2 secondes)
+    // Vérifier périodiquement les popups de cookies
     setInterval(autoAcceptCookies, 2000);
 })();
