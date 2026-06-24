@@ -69,6 +69,8 @@ Bouton YT (YouTube / Dailymotion) : Permet d'insérer une vidéo en collant simp
 Bouton SC (SoundCloud Mini) : Insère un lecteur SoundCloud ultra-discret de seulement 20px de haut. C'est l'affichage le plus minimaliste possible pour ne pas gêner la lecture.
 
 
+
+
 ## 🌍 Compatibilité universelle
 Le script a été conçu pour être universel. Il utilise la détection active de l'instance window.tinyMCE.activeEditor. Cela signifie qu'il fonctionnera sur la majorité des sites utilisant TinyMCE (WordPress, Joomla, etc.).
 
