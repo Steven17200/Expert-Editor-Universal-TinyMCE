@@ -518,6 +518,68 @@
             );
             alert(`✅ Page intégrée (${width} × ${height}).`);
         }));
+        // --- Bouton YouTube Shorts ---
+toolbar.appendChild(create('btn-yt-shorts', '🎥 Shorts', () => {
+    const url = prompt("Lien YouTube Shorts (ex: https://www.youtube.com/shorts/abc123) :");
+    if (!url) return;
+
+    // Détection de l'ID (supporte shorts/, youtu.be/, v=, etc.)
+    const idMatch = url.match(/(?:v=|\/|shorts\/|youtu\.be\/)([\w-]{11})/);
+    const id = idMatch ? idMatch[1] : null;
+    if (!id) {
+        alert("❌ ID YouTube non détecté. Vérifie le lien.");
+        return;
+    }
+
+    // Choix du format
+    const formatChoix = prompt(
+        "Format pour YouTube Shorts :\n1 = Vertical (9:16 - Recommandé)\n2 = Carré (1:1)\n3 = Personnalisé",
+        "1"
+    );
+
+    let width, height, style = "";
+    if (formatChoix === "1") {
+        // Format vertical (9:16)
+        width = "300";
+        height = "533";
+        style = "max-width: 100%; height: auto; aspect-ratio: 9/16;";
+    } else if (formatChoix === "2") {
+        // Format carré (1:1)
+        width = "300";
+        height = "300";
+        style = "max-width: 100%; height: auto; aspect-ratio: 1/1;";
+    } else {
+        // Personnalisé
+        width = prompt("Largeur (pixels ou %) :", "100%") || "100%";
+        height = prompt("Hauteur (pixels ou %) :", "56.25vw") || "56.25vw";
+        style = "max-width: 100%;";
+    }
+
+    const autoplayChoix = prompt("Autoplay ? (1 = oui / 0 = non)", "1");
+    const autoplay = (autoplayChoix === "1") ? "1" : "0";
+
+    // URL de l'iframe (shorts utilise le même endpoint que les vidéos normales)
+    const iframeSrc = `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=0&loop=1&playlist=${id}&enablejsapi=1`;
+
+    ed.focus();
+    ed.execCommand('mceInsertContent', false,
+        `<div style="display:flex;justify-content:center;margin:15px 0;">
+            <iframe
+                width="${width}"
+                height="${height}"
+                src="${iframeSrc}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                style="border-radius:12px; background:#000; ${style}"
+                allowfullscreen>
+            </iframe>
+        </div><p></p>`
+    );
+
+    const formatNom = (formatChoix === "1") ? "Vertical (9:16)" : (formatChoix === "2") ? "Carré (1:1)" : "Personnalisé";
+    const status = (autoplay === "1") ? "avec autoplay" : "sans autoplay";
+    alert(`✅ YouTube Shorts inséré (${formatNom}) ${status}. Le son peut demander un clic selon le navigateur.`);
+}));
 
         toolbar.appendChild(create('btn-yt-video', '📺 YouTube', () => {
             const url = prompt("Lien YouTube (ou juste l'ID) :");
@@ -741,6 +803,7 @@
             { name: "France 2", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/France_2_-_logo_2018.svg/1280px-France_2_-_logo_2018.svg.png" },
             { name: "France 3", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/France_3_-_logo_2018.svg/3840px-France_3_-_logo_2018.svg.png" },
             { name: "Canal+", url: "https://i.postimg.cc/WhK3PR9S/Canal.png" },
+            { name: "By-Canal", url: " https://i.postimg.cc/5NWYYFF4/By-Canal.png" },
             { name: "M6", url: "https://i.postimg.cc/QMMxprrp/M6-logo-svg.png" },
             { name: "M6+", url: "https://i.postimg.cc/jwYtzmYp/M6-logo-q-noir-jaune.png" },
             { name: "FreeBox Ultra", url: "https://i.postimg.cc/yxLtY09C/image.png" },
@@ -759,7 +822,9 @@
             { name: "Free PRO", url: "https://i.postimg.cc/sgS2KrXz/Free-PRO.png" },
             { name: "Free Mobile", url: "https://i.postimg.cc/t72T3vZ0/Logo-free-mobile2022.png" },
             { name: "BOX DELTA", url: "https://i.postimg.cc/VJGyQBL1/freebox-delta-1200x1200.png" },
-            { name: "BOX ULTRA", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" }
+            { name: "BOX ULTRA", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" },
+            { name: "Croix Rouge", url: "https://i.postimg.cc/Z5NYWhjg/Croix-Rouge-(non).png" },
+            { name: "Croix Verte", url: "https://i.postimg.cc/zGhDy1pc/Fleche-verte-(OK).png" }
         ];
 
         const logoSel = document.createElement('select');
@@ -867,5 +932,5 @@
     }
 
     // Vérifier périodiquement les popups de cookies
-    setInterval(autoAcceptCookies, 2000);
+    setInterval(autoAcceptCookies, 12000);
 })();
