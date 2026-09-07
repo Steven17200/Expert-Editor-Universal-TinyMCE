@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4 + Footer dans le contenu
 // @namespace    https://github.com/Steven17200
-// @version      6.1.0
-// @description  Clé Mistral sécurisée + Clé IA + Tableau + Odysee + Archive.org + Palettes couleurs + Code + Footer intégré dans le contenu
+// @version      6.2.0
+// @description  Clé Mistral + Archive.org + Font Awesome (logos 12pt) + Odysee + Palettes + Footer
 // @author       Steven17200 (Modifié par Stéphane)
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://www.universfreebox.com/*
@@ -21,6 +21,20 @@
     link.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Caveat:wght@400;700&family=Pacifico&family=Dancing+Script:wght@400;700&family=Shadows+Into+Light&family=Michroma&family=Special+Elite&family=Homemade+Apple&family=Yellowtail&family=Satisfy&family=Fira+Code&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
+
+    // Police d'icônes Font Awesome (suit la taille du texte, ex. 12pt)
+    const FA_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
+    function injectFontAwesome(doc) {
+        if (!doc) return;
+        const root = doc.head || doc.documentElement;
+        if (!root || root.querySelector('link[data-fa-expert]')) return;
+        const faLink = doc.createElement('link');
+        faLink.rel = 'stylesheet';
+        faLink.href = FA_CSS;
+        faLink.setAttribute('data-fa-expert', '1');
+        root.appendChild(faLink);
+    }
+    injectFontAwesome(document);
 
     // Clé Mistral sécurisée
     let MISTRAL_API_KEY = GM_getValue('mistral_api_key', null);
@@ -235,6 +249,8 @@
 
     function setupEditor(ed) {
         if (!ed.getContainer() || ed.getContainer().querySelector('.expert-editor-toolbar')) return;
+
+        try { injectFontAwesome(ed.getDoc()); } catch (e) {}
 
         const container = ed.getContainer();
         const toolbar = document.createElement('div');
@@ -837,50 +853,93 @@ toolbar.appendChild(create('btn-yt-shorts', '🎥 Shorts', () => {
             alert("✅ Publication HTML insérée avec fond gris et texte noir ! Utilisez le surligneur pour égayer.");
         }));
 
-        // --- 13. LOGOS TV ---
+        // --- 13. LOGOS (Font Awesome + images, taille = police courante, ex. 12pt) ---
         const logoList = [
-            { name: "📺 Logos TV", url: "" },
-            { name: "TF1", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
-            { name: "TF1+", url: "https://i.postimg.cc/qhH48SH9/ob-907eeb-tf1.webp" },
-            { name: "France 2", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/France_2_-_logo_2018.svg/1280px-France_2_-_logo_2018.svg.png" },
-            { name: "France 3", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/France_3_-_logo_2018.svg/3840px-France_3_-_logo_2018.svg.png" },
-            { name: "Canal+", url: "https://i.postimg.cc/WhK3PR9S/Canal.png" },
-            { name: "By-Canal", url: " https://i.postimg.cc/5NWYYFF4/By-Canal.png" },
-            { name: "M6", url: "https://i.postimg.cc/QMMxprrp/M6-logo-svg.png" },
-            { name: "M6+", url: "https://i.postimg.cc/jwYtzmYp/M6-logo-q-noir-jaune.png" },
-            { name: "FreeBox Ultra", url: "https://i.postimg.cc/yxLtY09C/image.png" },
-            { name: "HBO", url: "https://i.postimg.cc/YCP7xBhZ/image.png" },
-            { name: "Youtube", url: "https://i.postimg.cc/nrRSNqBZ/Logo-Youtube.png" },
-            { name: "Free TV", url: "https://i.postimg.cc/FKwcRpXr/Logo%20Free%20tv.png" },
-            { name: "Apple TV 4K", url: "https://i.postimg.cc/tsz30gJ9/Apple-TV4K.png" },
-            { name: "Apple TV+", url: "https://i.postimg.cc/vBKN2YYH/Apple-TV-logo.png" },
-            { name: "Apple Music", url: "https://i.postimg.cc/h46B6Trc/Apple-Music-Logo.png" },
-            { name: "Google TV", url: "https://i.postimg.cc/CR4GyK5g/Google-TV-logo-svg.png" },
-            { name: "Molotov TV", url: "https://i.postimg.cc/K8fm5YBM/Molotov.png" },
-            { name: "Prime Video", url: "https://i.postimg.cc/BbBzGjqm/Pirme-video.png" },
-            { name: "Netflix", url: "https://i.postimg.cc/nXzpzN3F/Netflix-Logomark.png" },
-            { name: "Disney+", url: "https://i.postimg.cc/SjVNHRr5/Dinsey.png" },
-            { name: "Free", url: "https://i.postimg.cc/mh8DYpcv/Free-logo-svg.png" },
-            { name: "Free PRO", url: "https://i.postimg.cc/sgS2KrXz/Free-PRO.png" },
-            { name: "Free Mobile", url: "https://i.postimg.cc/t72T3vZ0/Logo-free-mobile2022.png" },
-            { name: "BOX DELTA", url: "https://i.postimg.cc/VJGyQBL1/freebox-delta-1200x1200.png" },
-            { name: "BOX ULTRA", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" },
-            { name: "Croix Rouge", url: "https://i.postimg.cc/Z5NYWhjg/Croix-Rouge-(non).png" },
-            { name: "Croix Verte", url: "https://i.postimg.cc/zGhDy1pc/Fleche-verte-(OK).png" }
+            { name: "📺 Logos", type: "label" },
+            { name: "-- Font Awesome (suit le 12pt) --", type: "label" },
+            { name: "YouTube", type: "fa", fa: "fa-brands fa-youtube", color: "#FF0000" },
+            { name: "X (Twitter)", type: "fa", fa: "fa-brands fa-x-twitter", color: "#000000" },
+            { name: "Facebook", type: "fa", fa: "fa-brands fa-facebook", color: "#1877F2" },
+            { name: "Instagram", type: "fa", fa: "fa-brands fa-instagram", color: "#E4405F" },
+            { name: "TikTok", type: "fa", fa: "fa-brands fa-tiktok", color: "#000000" },
+            { name: "Twitch", type: "fa", fa: "fa-brands fa-twitch", color: "#9146FF" },
+            { name: "Spotify", type: "fa", fa: "fa-brands fa-spotify", color: "#1DB954" },
+            { name: "Discord", type: "fa", fa: "fa-brands fa-discord", color: "#5865F2" },
+            { name: "Amazon / Prime", type: "fa", fa: "fa-brands fa-amazon", color: "#FF9900" },
+            { name: "Apple", type: "fa", fa: "fa-brands fa-apple", color: "#555555" },
+            { name: "Apple Music", type: "fa", fa: "fa-brands fa-itunes-note", color: "#FA243C" },
+            { name: "Google", type: "fa", fa: "fa-brands fa-google", color: "#4285F4" },
+            { name: "Wikipedia", type: "fa", fa: "fa-brands fa-wikipedia-w", color: "#000000" },
+            { name: "Vimeo", type: "fa", fa: "fa-brands fa-vimeo-v", color: "#1AB7EA" },
+            { name: "SoundCloud", type: "fa", fa: "fa-brands fa-soundcloud", color: "#FF5500" },
+            { name: "OK (croix verte)", type: "fa", fa: "fa-solid fa-circle-check", color: "#2E7D32" },
+            { name: "NON (croix rouge)", type: "fa", fa: "fa-solid fa-circle-xmark", color: "#C62828" },
+            { name: "-- Chaînes & box (image 1em) --", type: "label" },
+            { name: "TF1", type: "img", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
+            { name: "TF1+", type: "img", url: "https://i.postimg.cc/qhH48SH9/ob-907eeb-tf1.webp" },
+            { name: "France 2", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/France_2_-_logo_2018.svg/240px-France_2_-_logo_2018.svg.png" },
+            { name: "France 3", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/France_3_-_logo_2018.svg/240px-France_3_-_logo_2018.svg.png" },
+            { name: "Canal+", type: "img", url: "https://i.postimg.cc/WhK3PR9S/Canal.png" },
+            { name: "By-Canal", type: "img", url: "https://i.postimg.cc/5NWYYFF4/By-Canal.png" },
+            { name: "M6", type: "img", url: "https://i.postimg.cc/QMMxprrp/M6-logo-svg.png" },
+            { name: "M6+", type: "img", url: "https://i.postimg.cc/jwYtzmYp/M6-logo-q-noir-jaune.png" },
+            { name: "FreeBox Ultra", type: "img", url: "https://i.postimg.cc/yxLtY09C/image.png" },
+            { name: "HBO", type: "img", url: "https://i.postimg.cc/YCP7xBhZ/image.png" },
+            { name: "Free TV", type: "img", url: "https://i.postimg.cc/FKwcRpXr/Logo%20Free%20tv.png" },
+            { name: "Apple TV 4K", type: "img", url: "https://i.postimg.cc/tsz30gJ9/Apple-TV4K.png" },
+            { name: "Apple TV+", type: "img", url: "https://i.postimg.cc/vBKN2YYH/Apple-TV-logo.png" },
+            { name: "Google TV", type: "img", url: "https://i.postimg.cc/CR4GyK5g/Google-TV-logo-svg.png" },
+            { name: "Molotov TV", type: "img", url: "https://i.postimg.cc/K8fm5YBM/Molotov.png" },
+            { name: "Netflix", type: "img", url: "https://i.postimg.cc/nXzpzN3F/Netflix-Logomark.png" },
+            { name: "Disney+", type: "img", url: "https://i.postimg.cc/SjVNHRr5/Dinsey.png" },
+            { name: "Free", type: "img", url: "https://i.postimg.cc/mh8DYpcv/Free-logo-svg.png" },
+            { name: "Free PRO", type: "img", url: "https://i.postimg.cc/sgS2KrXz/Free-PRO.png" },
+            { name: "Free Mobile", type: "img", url: "https://i.postimg.cc/t72T3vZ0/Logo-free-mobile2022.png" },
+            { name: "BOX DELTA", type: "img", url: "https://i.postimg.cc/VJGyQBL1/freebox-delta-1200x1200.png" },
+            { name: "BOX ULTRA", type: "img", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" }
         ];
 
         const logoSel = document.createElement('select');
-        logoSel.style = "background:#180; color:#eee; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px; cursor:pointer;";
-        logoList.forEach(l => {
+        logoSel.style = "background:#180; color:#eee; border:1px solid #555; padding:4px; border-radius:4px; font-size:12px; cursor:pointer; max-width:210px;";
+        logoList.forEach((l, i) => {
             const o = document.createElement('option');
-            o.value = l.url; o.textContent = l.name;
+            o.textContent = l.name;
+            if (l.type === "label") {
+                o.value = "";
+                o.disabled = i !== 0;
+            } else if (l.type === "fa") {
+                o.value = "fa:" + i;
+                o.dataset.type = "fa";
+                o.dataset.fa = l.fa;
+                o.dataset.color = l.color || "#111";
+            } else {
+                o.value = l.url;
+                o.dataset.type = "img";
+            }
             logoSel.appendChild(o);
         });
         logoSel.onchange = (e) => {
-            const logoUrl = e.target.value;
-            if (logoUrl) {
+            const opt = e.target.options[e.target.selectedIndex];
+            const type = opt && opt.dataset ? opt.dataset.type : "";
+            if (!type) {
+                e.target.selectedIndex = 0;
+                return;
+            }
+            const size = (sizeSelect && sizeSelect.value) ? sizeSelect.value : "12pt";
+            let html = "";
+            if (type === "fa") {
+                try { injectFontAwesome(ed.getDoc()); } catch (err) {}
+                const bodyHtml = ed.getContent() || "";
+                if (bodyHtml.indexOf("font-awesome") === -1) {
+                    html += `<link rel="stylesheet" href="${FA_CSS}" />`;
+                }
+                html += `<i class="${opt.dataset.fa}" style="font-size:${size};color:${opt.dataset.color};vertical-align:-0.15em;margin:0 0.12em;line-height:1;" aria-hidden="true"></i>`;
+            } else if (opt.value) {
+                html = `<img src="${opt.value}" alt="${opt.textContent}" style="height:${size};width:auto;vertical-align:-0.15em;margin:0 0.12em;">`;
+            }
+            if (html) {
                 ed.focus();
-                ed.execCommand('mceInsertContent', false, `<img src="${logoUrl}" style="height:auto; width:48px; vertical-align:middle; margin:5px;">`);
+                ed.execCommand("mceInsertContent", false, html);
             }
             e.target.selectedIndex = 0;
         };
