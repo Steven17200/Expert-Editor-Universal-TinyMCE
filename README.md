@@ -70,7 +70,7 @@ Bouton SC (SoundCloud Mini) : Insère un lecteur SoundCloud ultra-discret de seu
 
 Bouton Archive.org : Intègre une vidéo Internet Archive. Même principe que YouTube : coller le lien, choisir largeur/hauteur, lecture automatique (oui/non) et lecture en boucle (oui/non). La miniature officielle de la vidéo (poster) est intégrée automatiquement.
 
-Logos (Font Awesome) : les icônes de marques (YouTube, Apple, Amazon, X, etc.) sont insérées en police d'icônes. Elles suivent la taille de caractère choisie dans la barre (ex. 12pt). Les logos TV français sans icône FA (TF1, Canal+, M6, Freebox…) restent en image, mais à la même hauteur (1em / 12pt).
+Logos (Font Awesome) : les icônes de marques (YouTube, Apple, Amazon, X, etc.) sont insérées en police d'icônes. Elles suivent la taille de caractère choisie dans la barre (ex. 12pt). Les logos TV / box sans icône FA (TF1, Canal+, M6, Free, Netflix…) viennent de Wikimedia Commons et s’affichent à la même hauteur.
 
 ## 🌍 Compatibilité universelle
 Le script a été conçu pour être universel. Il utilise la détection active de l'instance window.tinyMCE.activeEditor. Cela signifie qu'il fonctionnera sur la majorité des sites utilisant TinyMCE (WordPress, Joomla, etc.).

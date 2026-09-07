@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4 + Footer dans le contenu
 // @namespace    https://github.com/Steven17200
-// @version      6.2.0
-// @description  Clé Mistral + Archive.org + Font Awesome (logos 12pt) + Odysee + Palettes + Footer
+// @version      6.3.0
+// @description  Clé Mistral + Archive.org + Font Awesome + logos Wikipedia/Commons (12pt)
 // @author       Steven17200 (Modifié par Stéphane)
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://www.universfreebox.com/*
@@ -874,29 +874,27 @@ toolbar.appendChild(create('btn-yt-shorts', '🎥 Shorts', () => {
             { name: "SoundCloud", type: "fa", fa: "fa-brands fa-soundcloud", color: "#FF5500" },
             { name: "OK (croix verte)", type: "fa", fa: "fa-solid fa-circle-check", color: "#2E7D32" },
             { name: "NON (croix rouge)", type: "fa", fa: "fa-solid fa-circle-xmark", color: "#C62828" },
-            { name: "-- Chaînes & box (image 1em) --", type: "label" },
-            { name: "TF1", type: "img", url: "https://i.postimg.cc/1fTtZxWH/TF1.png" },
-            { name: "TF1+", type: "img", url: "https://i.postimg.cc/qhH48SH9/ob-907eeb-tf1.webp" },
-            { name: "France 2", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/France_2_-_logo_2018.svg/240px-France_2_-_logo_2018.svg.png" },
-            { name: "France 3", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/France_3_-_logo_2018.svg/240px-France_3_-_logo_2018.svg.png" },
-            { name: "Canal+", type: "img", url: "https://i.postimg.cc/WhK3PR9S/Canal.png" },
-            { name: "By-Canal", type: "img", url: "https://i.postimg.cc/5NWYYFF4/By-Canal.png" },
-            { name: "M6", type: "img", url: "https://i.postimg.cc/QMMxprrp/M6-logo-svg.png" },
-            { name: "M6+", type: "img", url: "https://i.postimg.cc/jwYtzmYp/M6-logo-q-noir-jaune.png" },
-            { name: "FreeBox Ultra", type: "img", url: "https://i.postimg.cc/yxLtY09C/image.png" },
-            { name: "HBO", type: "img", url: "https://i.postimg.cc/YCP7xBhZ/image.png" },
-            { name: "Free TV", type: "img", url: "https://i.postimg.cc/FKwcRpXr/Logo%20Free%20tv.png" },
-            { name: "Apple TV 4K", type: "img", url: "https://i.postimg.cc/tsz30gJ9/Apple-TV4K.png" },
-            { name: "Apple TV+", type: "img", url: "https://i.postimg.cc/vBKN2YYH/Apple-TV-logo.png" },
-            { name: "Google TV", type: "img", url: "https://i.postimg.cc/CR4GyK5g/Google-TV-logo-svg.png" },
-            { name: "Molotov TV", type: "img", url: "https://i.postimg.cc/K8fm5YBM/Molotov.png" },
-            { name: "Netflix", type: "img", url: "https://i.postimg.cc/nXzpzN3F/Netflix-Logomark.png" },
-            { name: "Disney+", type: "img", url: "https://i.postimg.cc/SjVNHRr5/Dinsey.png" },
-            { name: "Free", type: "img", url: "https://i.postimg.cc/mh8DYpcv/Free-logo-svg.png" },
-            { name: "Free PRO", type: "img", url: "https://i.postimg.cc/sgS2KrXz/Free-PRO.png" },
-            { name: "Free Mobile", type: "img", url: "https://i.postimg.cc/t72T3vZ0/Logo-free-mobile2022.png" },
-            { name: "BOX DELTA", type: "img", url: "https://i.postimg.cc/VJGyQBL1/freebox-delta-1200x1200.png" },
-            { name: "BOX ULTRA", type: "img", url: "https://i.postimg.cc/QNBVhnhr/freebox-ultra.webp" }
+            { name: "-- Chaînes & box (Wikipedia / Commons) --", type: "label" },
+            { name: "TF1", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Logo_TF1_2013.svg/250px-Logo_TF1_2013.svg.png" },
+            { name: "TF1+", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Logo_TF1%2B.svg/250px-Logo_TF1%2B.svg.png" },
+            { name: "France 2", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/France_2_-_logo_2018.svg/250px-France_2_-_logo_2018.svg.png" },
+            { name: "France 3", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/France_3_-_logo_2018.svg/250px-France_3_-_logo_2018.svg.png" },
+            { name: "France 4", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/France_4_-_logo_2018.svg/250px-France_4_-_logo_2018.svg.png" },
+            { name: "France 5", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/France_5_-_logo_2018.svg/250px-France_5_-_logo_2018.svg.png" },
+            { name: "Arte", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Arte_Logo_2017.svg/250px-Arte_Logo_2017.svg.png" },
+            { name: "Canal+", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Logo_Canal%2B_1995.svg/250px-Logo_Canal%2B_1995.svg.png" },
+            { name: "M6", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Logo_M6_%282020%2C_fond_clair%29.svg/250px-Logo_M6_%282020%2C_fond_clair%29.svg.png" },
+            { name: "M6+", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/M6%2B_%282024%29.svg/250px-M6%2B_%282024%29.svg.png" },
+            { name: "W9", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/W9_2018.svg/250px-W9_2018.svg.png" },
+            { name: "Molotov", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Logo_Molotov.tv.svg/250px-Logo_Molotov.tv.svg.png" },
+            { name: "Netflix", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Netflix_icon.svg/250px-Netflix_icon.svg.png" },
+            { name: "Disney+", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Disney%2B_logo.svg/250px-Disney%2B_logo.svg.png" },
+            { name: "HBO", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/HBO_logo.svg/250px-HBO_logo.svg.png" },
+            { name: "Apple TV", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Apple_TV_logo.svg/250px-Apple_TV_logo.svg.png" },
+            { name: "Apple TV+", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Apple_TV_Plus_Logo.svg/250px-Apple_TV_Plus_Logo.svg.png" },
+            { name: "Google TV", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Google_TV_logo.svg/250px-Google_TV_logo.svg.png" },
+            { name: "Free", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Free_logo.svg/250px-Free_logo.svg.png" },
+            { name: "Free Mobile", type: "img", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Logo_Free_Mobile.svg/250px-Logo_Free_Mobile.svg.png" }
         ];
 
         const logoSel = document.createElement('select');
