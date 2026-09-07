@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4 + Footer dans le contenu
 // @namespace    https://github.com/Steven17200
-// @version      6.0.7
-// @description  Clé Mistral sécurisée + Clé IA + Tableau + Odysee + Palettes couleurs + Code + Footer intégré dans le contenu
+// @version      6.1.0
+// @description  Clé Mistral sécurisée + Clé IA + Tableau + Odysee + Archive.org + Palettes couleurs + Code + Footer intégré dans le contenu
 // @author       Steven17200 (Modifié par Stéphane)
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://www.universfreebox.com/*
@@ -610,6 +610,48 @@ toolbar.appendChild(create('btn-yt-shorts', '🎥 Shorts', () => {
             );
             const status = (autoplay === "1") ? "avec autoplay" : "sans autoplay";
             alert(`YouTube inséré (${width}×${height}) ${status}. Le son peut demander un clic selon le navigateur.`);
+        }));
+
+        toolbar.appendChild(create('btn-archive-org', '📼 Archive.org', () => {
+            const url = prompt("Lien Archive.org (ex: https://archive.org/details/free-max-eddie-barclay) :");
+            if (!url) return;
+            const trimmed = url.trim();
+            const idMatch = trimmed.match(/archive\.org\/(?:details|embed|download|stream)\/([^/?#]+)/i)
+                || trimmed.match(/^([a-zA-Z0-9][a-zA-Z0-9._-]{1,100})$/);
+            const id = idMatch ? decodeURIComponent(idMatch[1]) : null;
+            if (!id) {
+                alert("❌ Identifiant Archive.org non détecté. Vérifie le lien (ex: https://archive.org/details/free-max-eddie-barclay).");
+                return;
+            }
+            const largeurStr = prompt("Largeur (pixels) ?", "560");
+            let width = parseInt(largeurStr, 10) || 560;
+            const hauteurStr = prompt("Hauteur (pixels) ?", "315");
+            let height = parseInt(hauteurStr, 10) || 315;
+            const autoPlayChoix = prompt("Lecture automatique ? (1 = oui / 0 = non)", "0");
+            const autoplay = (autoPlayChoix === "1") ? "1" : "0";
+            const loopChoix = prompt("En boucle ? (1 = oui / 0 = non)", "0");
+            const loop = (loopChoix === "1") ? "1" : "0";
+            const poster = `https://archive.org/services/img/${encodeURIComponent(id)}`;
+            const iframeSrc = `https://archive.org/embed/${encodeURIComponent(id)}?autoplay=${autoplay}&loop=${loop}&poster=${encodeURIComponent(poster)}`;
+            ed.focus();
+            ed.execCommand('mceInsertContent', false,
+                `<div style="display:flex;flex-direction:column;align-items:center;margin:15px 0;">
+                    <iframe
+                        width="${width}"
+                        height="${height}"
+                        src="${iframeSrc}"
+                        frameborder="0"
+                        webkitallowfullscreen="true"
+                        mozallowfullscreen="true"
+                        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                        style="border-radius:12px;background:#000;max-width:100%;"
+                        allowfullscreen>
+                    </iframe>
+                </div><p></p>`
+            );
+            const statusAuto = (autoplay === "1") ? "avec autoplay" : "sans autoplay";
+            const statusLoop = (loop === "1") ? "en boucle" : "sans boucle";
+            alert(`✅ Archive.org inséré (${width}×${height}) ${statusAuto}, ${statusLoop}. Miniature intégrée.`);
         }));
 
         toolbar.appendChild(create('btn-x-video', '𝕏 Vidéo', () => {
