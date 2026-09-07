@@ -1,14 +1,12 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4 + Footer dans le contenu
 // @namespace    https://github.com/Steven17200
-// @version      6.3.0
-// @description  Clé Mistral + Archive.org + Font Awesome + logos Wikipedia/Commons (12pt)
+// @version      6.4.0
+// @description  Analyse copie la news UF + Archive.org + Font Awesome + logos Commons
 // @author       Steven17200 (Modifié par Stéphane)
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://www.universfreebox.com/*
-// @grant        GM_getValue
-// @grant        GM_setValue
-// @grant        GM_deleteValue
+// @grant        GM_setClipboard
 // @updateURL    https://raw.githubusercontent.com/Steven17200/Expert-Editor-Universal-TinyMCE/main/Expert_Editor_Universal%20.user.js
 // @downloadURL  https://raw.githubusercontent.com/Steven17200/Expert-Editor-Universal-TinyMCE/main/Expert_Editor_Universal%20.user.js
 // ==/UserScript==
@@ -36,104 +34,85 @@
     }
     injectFontAwesome(document);
 
-    // Clé Mistral sécurisée
-    let MISTRAL_API_KEY = GM_getValue('mistral_api_key', null);
-
-    if (MISTRAL_API_KEY) {
-        fetch("https://api.mistral.ai/v1/models", {
-            headers: {
-                "Authorization": `Bearer ${MISTRAL_API_KEY}`
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                GM_deleteValue('mistral_api_key');
-                MISTRAL_API_KEY = null;
-            }
-        })
-        .catch(() => {});
+    function collectPageImages(root) {
+        const urls = [];
+        const seen = {};
+        const add = (u) => {
+            if (!u || typeof u !== 'string') return;
+            u = u.trim();
+            if (!u || u.indexOf('data:') === 0) return;
+            u = u.split('?')[0];
+            if (seen[u]) return;
+            seen[u] = true;
+            urls.push(u);
+        };
+        const og = document.querySelector('meta[property="og:image"]');
+        if (og && og.getAttribute('content')) add(og.getAttribute('content'));
+        const scope = root || document;
+        scope.querySelectorAll('img').forEach((img) => {
+            add(img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || img.getAttribute('src'));
+        });
+        return urls;
     }
 
-    function getOrAskKey() {
-        if (!MISTRAL_API_KEY) {
-            const key = prompt("Clé Mistral API requise pour IA/US/Analyse\nhttps://console.mistral.ai/api-keys\nColle ici :");
-            if (key && key.trim().length > 20) {
-                MISTRAL_API_KEY = key.trim();
-                GM_setValue('mistral_api_key', MISTRAL_API_KEY);
-            } else {
-                alert("Pas de clé valide -> IA désactivée.");
-                return null;
-            }
+    function extractArticleFromPage() {
+        const titleEl = document.querySelector('h1.entry-title, h1');
+        const title = titleEl ? titleEl.innerText.trim() : (document.title || '').trim();
+        const dateEl = document.querySelector('time.date, time[datetime]');
+        const date = dateEl ? (dateEl.innerText || dateEl.getAttribute('datetime') || '').trim() : '';
+        const authorMeta = document.querySelector('meta[name="author"]');
+        const authorLink = document.querySelector('.meta-author a, .author a');
+        const author = (authorMeta && authorMeta.content) || (authorLink ? authorLink.innerText.trim() : '');
+        const content = document.querySelector('.entry-content, article .content-wrapper, #post-' + (window.location.pathname.match(/\/article\/(\d+)/) || [])[1]);
+        let body = '';
+        const images = collectPageImages(content || document);
+        if (content) {
+            const clone = content.cloneNode(true);
+            clone.querySelectorAll('script, style, noscript, iframe, .publicite, [id*="taboola"], [id*="ad"], .addtoany, .partage').forEach((n) => n.remove());
+            body = (clone.innerText || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
         }
-        return MISTRAL_API_KEY;
+        return {
+            url: location.href,
+            title: title,
+            date: date,
+            author: author,
+            images: images,
+            body: body
+        };
     }
 
-    async function appelMistral(ed, btn, systemPrompt, fullContent = false) {
-        const key = getOrAskKey();
-        if (!key) return;
+    function buildAnalyseClipboard(art) {
+        const imgs = (art.images && art.images.length)
+            ? art.images.map((u) => '- ' + u).join('\n')
+            : '- (aucune)';
+        return [
+            'Rédige l\'article Tiny Editor (HTML + prompt audio SpaceXAI Voice) à partir de cette news Univers Freebox.',
+            '',
+            'URL : ' + art.url,
+            'Titre : ' + (art.title || ''),
+            'Date : ' + (art.date || ''),
+            'Auteur : ' + (art.author || ''),
+            '',
+            'Images (photos réelles à réutiliser) :',
+            imgs,
+            '',
+            '--- Texte de l\'article ---',
+            art.body || '(contenu introuvable)'
+        ].join('\n');
+    }
 
-        let text = "";
-        if (fullContent) {
-            text = ed.getContent({ format: 'text' });
-        } else {
-            text = ed.selection.getContent({ format: 'text' });
-        }
-
-        if (!text || text.trim().length < 5) {
-            alert("Sélectionne du texte valide !");
-            return;
-        }
-
-        const originalLabel = btn.innerHTML;
-        btn.innerHTML = '⏳';
-        btn.disabled = true;
-
+    function copyTexte(texte) {
         try {
-            const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${key}`
-                },
-                body: JSON.stringify({
-                    model: "open-mistral-7b",
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: text }
-                    ],
-                    temperature: 0.7
-                })
-            });
-
-            if (!response.ok) throw new Error("Erreur API : " + response.status);
-
-            const data = await response.json();
-            let result = data.choices[0].message.content.trim();
-
-            ed.focus();
-            if (fullContent) {
-                let finalHtml = result.replace(/[*_#~]/g, "")
-                    .split('\n')
-                    .filter(line => line.trim() !== "")
-                    .map(line => {
-                        if (line.includes('<h2') || line.includes('<h3') || line.includes('<span') || line.includes('<div')) return line;
-                        return `<p style="margin: 12px 0; line-height: 1.6; font-size: 11pt;">${line}</p>`;
-                    })
-                    .join('');
-                ed.setContent(finalHtml);
-            } else {
-                ed.execCommand('mceInsertContent', false, result);
+            if (typeof GM_setClipboard === 'function') {
+                GM_setClipboard(texte, 'text');
+                return true;
             }
-            btn.innerHTML = '✅';
-        } catch (error) {
-            console.error(error);
-            btn.innerHTML = '❌';
-        }
-
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalLabel;
-        }, 2000);
+        } catch (e) {}
+        try {
+            navigator.clipboard.writeText(texte);
+            return true;
+        } catch (e2) {}
+        return false;
     }
 
     const styleFix = document.createElement('style');
@@ -267,42 +246,25 @@
             return btn;
         };
 
-        // --- 1. CONFIG CLÉ IA ---
-        toolbar.appendChild(create('btn-config-key', '🔑 Clé IA', () => {
-            const current = GM_getValue('mistral_api_key', '');
-            const key = prompt("Colle ta clé Mistral API :", current);
-            if (key === null) return;
-            if (key.trim() === '') {
-                GM_deleteValue('mistral_api_key');
-                MISTRAL_API_KEY = null;
-                alert("Clé supprimée.");
-            } else if (key.trim().length > 10) {
-                GM_setValue('mistral_api_key', key.trim());
-                MISTRAL_API_KEY = key.trim();
-                alert("Clé enregistrée ✓");
-            } else {
-                alert("Clé trop courte.");
-            }
-        }));
-
-        // --- 2. IA & ANALYSE ---
-        toolbar.appendChild(create('btn-ai-corr', '✨ IA', () => {
-            appelMistral(ed, document.getElementById('btn-ai-corr'), "Tu es un correcteur expert. Corrige l'orthographe, la grammaire et améliore légèrement le style si nécessaire sans changer le sens.", false);
-        }));
-
-        const usBtn = create('btn-ai-us', 'US', () => {
-            appelMistral(ed, usBtn, "Tu es un traducteur expert. Traduis le texte sélectionné en anglais américain (US) avec un ton naturel et professionnel.", false);
-        });
-        usBtn.style.color = "#ffb300";
-        toolbar.appendChild(usBtn);
-
-        toolbar.appendChild(create('btn-presentation', '📢 Présentation', () => {
-            ed.execCommand('mceInsertContent', false, " (Script expérimental) Bonjour, je suis Mistral ✨, l'IA Française de Steven");
-        }));
-
+        // --- 1. ANALYSE : copie la news de la page pour l'agent HTML Tiny Editor ---
         toolbar.appendChild(create('btn-ai-analyze', '🧐 Analyse', () => {
-            const prompt = `Analyse en profondeur les implications de l'article. Structure ta réponse en 3 parties : contexte, arguments pour/contre, conclusion. Donne des chiffres secteur pro/particulier. Fais une proposition pertinente.`;
-            appelMistral(ed, document.getElementById('btn-ai-analyze'), prompt, true);
+            const btn = document.getElementById('btn-ai-analyze');
+            const art = extractArticleFromPage();
+            if (!art.body && !art.title) {
+                alert("❌ Impossible de lire l'article sur cette page.");
+                return;
+            }
+            const texte = buildAnalyseClipboard(art);
+            const ok = copyTexte(texte);
+            if (btn) {
+                btn.innerHTML = ok ? '✅ Copié' : '❌';
+                setTimeout(() => { btn.innerHTML = '🧐 Analyse'; }, 2000);
+            }
+            if (ok) {
+                alert("✅ News copiée (" + (art.title || 'sans titre').slice(0, 80) + ").\nColle-la dans ton agent HTML Tiny Editor, puis pose ta demande.");
+            } else {
+                prompt("Copie manuelle (Ctrl+C) :", texte);
+            }
         }));
 
         // --- 3. TAILLES ---
