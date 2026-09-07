@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Expert Editor Universal V4 + Footer dans le contenu
 // @namespace    https://github.com/Steven17200
-// @version      6.4.0
-// @description  Analyse copie la news UF + Archive.org + Font Awesome + logos Commons
+// @version      6.5.0
+// @description  Analyse copie la news UF et ouvre HTML Tiny Editor + Archive.org + logos
 // @author       Steven17200 (Modifié par Stéphane)
 // @icon         https://cdn-icons-png.flaticon.com/512/825/825590.png
 // @match        *://www.universfreebox.com/*
 // @grant        GM_setClipboard
+// @grant        GM_openInTab
 // @updateURL    https://raw.githubusercontent.com/Steven17200/Expert-Editor-Universal-TinyMCE/main/Expert_Editor_Universal%20.user.js
 // @downloadURL  https://raw.githubusercontent.com/Steven17200/Expert-Editor-Universal-TinyMCE/main/Expert_Editor_Universal%20.user.js
 // ==/UserScript==
@@ -113,6 +114,19 @@
             return true;
         } catch (e2) {}
         return false;
+    }
+
+    const TINY_EDITOR_URL = 'https://grok.com/project/2c6808e9-cdc9-4059-b3bb-44bb2e416c6';
+
+    function openTinyEditor() {
+        try {
+            if (typeof GM_openInTab === 'function') {
+                GM_openInTab(TINY_EDITOR_URL, { active: true, insert: true, setParent: true });
+                return true;
+            }
+        } catch (e) {}
+        const w = window.open(TINY_EDITOR_URL, '_blank');
+        return !!(w);
     }
 
     const styleFix = document.createElement('style');
@@ -246,7 +260,7 @@
             return btn;
         };
 
-        // --- 1. ANALYSE : copie la news de la page pour l'agent HTML Tiny Editor ---
+        // --- 1. ANALYSE : copie la news + ouvre l'agent HTML Tiny Editor ---
         toolbar.appendChild(create('btn-ai-analyze', '🧐 Analyse', () => {
             const btn = document.getElementById('btn-ai-analyze');
             const art = extractArticleFromPage();
@@ -255,15 +269,17 @@
                 return;
             }
             const texte = buildAnalyseClipboard(art);
-            const ok = copyTexte(texte);
+            const okCopy = copyTexte(texte);
+            const okOpen = openTinyEditor();
             if (btn) {
-                btn.innerHTML = ok ? '✅ Copié' : '❌';
+                btn.innerHTML = (okCopy && okOpen) ? '✅ Ouvert' : (okCopy ? '✅ Copié' : '❌');
                 setTimeout(() => { btn.innerHTML = '🧐 Analyse'; }, 2000);
             }
-            if (ok) {
-                alert("✅ News copiée (" + (art.title || 'sans titre').slice(0, 80) + ").\nColle-la dans ton agent HTML Tiny Editor, puis pose ta demande.");
-            } else {
+            if (!okCopy) {
                 prompt("Copie manuelle (Ctrl+C) :", texte);
+            }
+            if (!okOpen) {
+                alert("News copiée. Autorise les pop-ups Tampermonkey, ou ouvre :\n" + TINY_EDITOR_URL);
             }
         }));
 

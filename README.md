@@ -68,7 +68,7 @@ Bouton YT (YouTube / Dailymotion) : Permet d'insérer une vidéo en collant simp
 
 Bouton SC (SoundCloud Mini) : Insère un lecteur SoundCloud ultra-discret de seulement 20px de haut. C'est l'affichage le plus minimaliste possible pour ne pas gêner la lecture.
 
-Bouton Analyse : copie la news Univers Freebox de la page (titre, date, images, texte) dans le presse-papiers, prête à coller dans l’agent Grok « HTML Tiny Editor ».
+Bouton Analyse : copie la news Univers Freebox de la page (titre, date, images, texte) et ouvre l’agent Grok « HTML Tiny Editor » dans un nouvel onglet. Il ne reste plus qu’à coller (Ctrl+V) et envoyer.
 
 Logos (Font Awesome) : les icônes de marques (YouTube, Apple, Amazon, X, etc.) sont insérées en police d'icônes. Elles suivent la taille de caractère choisie dans la barre (ex. 12pt). Les logos TV / box sans icône FA (TF1, Canal+, M6, Free, Netflix…) viennent de Wikimedia Commons et s’affichent à la même hauteur.
 
